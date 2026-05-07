@@ -1,6 +1,7 @@
 import type { Reaction } from "@workspace/db";
 import { extractJsonArray, generateGeminiText } from "./ai";
 import { generateMLCandidates } from "./ml_model";
+import { logger } from "./logger";
 
 export interface DiscoveryCandidate {
   name: string;
@@ -205,15 +206,19 @@ export function fallbackDiscoveryCandidates(reaction: Reaction, count: number): 
 }
 
 export async function generateDiscoveryCandidates(reaction: Reaction, count: number): Promise<DiscoveryCandidate[]> {
-  // 1. Try Primary Mechanism: Local trained ML Screening Engine
-  const mlCandidates = generateMLCandidates(reaction.domain, count);
-  if (mlCandidates && mlCandidates.length > 0) {
-    console.log(`Local ML engine successfully screened and identified ${mlCandidates.length} candidates.`);
-    return mlCandidates.map((c, i) => normalizeCandidate(c, reaction, i));
+  // ─── 1. PRIMARY: Local ML Virtual High-Throughput Screening ───
+  try {
+    const mlCandidates = generateMLCandidates(reaction.domain, count);
+    if (mlCandidates && mlCandidates.length > 0) {
+      logger.info({ count: mlCandidates.length, domain: reaction.domain }, "ML engine: virtual screening complete");
+      return mlCandidates.map((c, i) => normalizeCandidate(c, reaction, i));
+    }
+  } catch (err) {
+    logger.warn({ err }, "ML engine threw error, falling back");
   }
 
-  // 2. Fallback Mechanism: Gemini LLM
-  console.warn(`Local ML engine unavailable, falling back to Gemini LLM...`);
+  // ─── 2. SECONDARY: Gemini LLM (only if ML engine fails) ───
+  logger.info("ML engine returned empty, trying Gemini LLM...");
   const isBio = reaction.domain === "synthetic-biology";
   const system = isBio
     ? "You are a synthetic biology platform agent for enzyme engineering, metabolic flux, microbial pathway design, and safe human-in-the-loop recommendations."
@@ -237,8 +242,11 @@ Scores must be 0 to 1. structureData, energyProfileData, and pathwayData may be 
   const text = await generateGeminiText({ system, prompt });
   const parsed = text ? extractJsonArray(text) : null;
   
-  // 3. Last Resort Fallback: Hardcoded unique pool
-  if (!parsed || parsed.length === 0) return fallbackDiscoveryCandidates(reaction, count);
+  // ─── 3. LAST RESORT: Curated expert pool ───
+  if (!parsed || parsed.length === 0) {
+    logger.info("Gemini also unavailable, using curated expert candidates");
+    return fallbackDiscoveryCandidates(reaction, count);
+  }
 
   return parsed.slice(0, count).map((raw, i) => normalizeCandidate(raw, reaction, i));
 }
