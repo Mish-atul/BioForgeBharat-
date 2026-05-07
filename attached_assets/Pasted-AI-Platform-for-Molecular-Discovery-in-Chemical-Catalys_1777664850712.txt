@@ -1,0 +1,82 @@
+AI Platform for Molecular Discovery in Chemical Catalysis and Synthetic Biology    
+
+Context
+
+The transition to a low-carbon industrial economy requires breakthroughs in catalysis and synthetic biology. Key chemical transformations — CO₂ to methanol, syngas to ethanol, ethanol to petroleum-grade hydrocarbons, cellulose to hydrocarbons, biomass to fuels and chemicals — currently suffer from limitations in catalyst efficiency, enzyme performance, and microbial pathway productivity. These are not niche research problems. They sit at the core of India's strategy for sustainable fuels, biomass utilisation, carbon conversion, and circular economy solutions.
+
+The discovery of new catalysts and engineered biological pathways remains concentrated in a few global innovation hubs, and the dominant research method is still trial-and-error experimentation. A single catalyst screening campaign can take months of bench time andconsume significant resources, with no guarantee of a viable result. A promising enzyme variant may require hundreds of mutations to be tested before one performs well enough. The design space is vast, the iteration cycle is slow, and institutional knowledge — which catalyst modifications worked, which failed, and why — is scattered across lab notebooks, papers, and the memories of individual researchers. 
+
+GPS Renewables is one of India's largest biogas companies, developing over USD 700 millionworth of biogas projects with a capacity of 300,000 tonnes per annum of bio-methane. The company has recently won a competitive bid to build India's first Ethanol-to-Jet plant. For GPS Renewables, faster catalyst and pathway discovery is not an academic exercise — it is acompetitive advantage that directly impacts the efficiency and economics of their production processes.    
+
+ 
+
+The Problem
+
+Design an AI-powered research platform that assists scientists in discovering and optimising catalysts, process parameters, enzymes, and microbial pathways for sustainable fuel and chemical production. The platform should not merely search existing databases —it should propose novel candidate designs, predict their performance, and learn from experimental results over time.    This problem offers two distinct directions. Participants may choose to work on one or both.
+
+   
+
+Direction 1 — Chemical CatalysisAI-driven discovery and optimisation of chemical catalysts for reactions such as CO₂ + green H₂ → methanol, syngas → ethanol, ethanol → petroleum-grade hydrocarbons, and similar transformations. The platform should:    
+
+Identify candidate catalysts for target reactions — not just retrieve known ones, butpropose new molecular designs using generative AI.
+Predict catalytic activity, reaction selectivity, and stability of candidate catalysts usingstructure–activity prediction models.    
+Model reaction pathways and estimate reaction energy profiles.    
+Visualise molecular structures, catalyst performance plots (activity vs. selectivity,stability over time), and reaction energy diagrams.    
+ 
+
+Direction 2 — Synthetic Biology
+
+AI-assisted enzyme engineering, metabolic pathway design, and microbial systems for reactions such as ethanol → hydrocarbons and biomass degradation. The platform should:    
+
+Suggest microorganisms, genetic modifications, and enzyme cocktails for targetreactions — and propose new biological designs, not just database lookups.
+Predict enzyme stability, metabolic pathway yield, and flux using AI-assisted design andmutation prediction models.    
+Generate metabolic pathways and genome engineering recommendations with fluxmodelling.    
+Visualise pathway maps showing metabolic flux and bottlenecks, gene editing impactmaps, and protein structure viewers with predicted mutation effects.    
+ 
+
+Cross-cutting — the platform must also address
+
+Data feedback loops: experimental results must flow back into the platform to retrainmodels and improve future predictions. A one-shot prediction tool that never learns isinsufficient.    
+ 
+
+Non-Negotiables 
+
+Participants should express a willingness to explore a longer-term pilot engagement with GPS Renewables for joint development of the platform beyond the hackathon.    
+
+While Round 1 is a written submission, any Round 2 implementation will run on deterministically scrambled or synthetic data inside a sandbox. Real business data willnot be released.    
+The solution must demonstrate a clear end-to-end discovery workflow: user enters a target reaction → platform retrieves known catalysts/enzymes from scientific databases → AI generates novel candidate designs → predictive models rank the most promising options → results are visualised and exported for experimental testing → experimentaloutcomes are fed back to refine future predictions.
+Data feedback loops, multi-user collaboration, and laboratory integration strategy are not optional extensions — they must be addressed in the solution, even if the hackathonprototype only implements a subset.    
+The inclusion of chemical engineers and/or biologists (subject matter experts) as teammembers or advisors is expected.       
+ 
+
+What Success Looks Like 
+
+A working solution should eventually make the following behaviours possible:  
+
+A researcher enters a target reaction (e.g., CO₂ + green H₂ → methanol). The platform retrieves known catalysts from scientific databases (Materials Project, Open Catalyst Project, BRENDA), generates novel candidate designs using generative AI, and ranks them by predicted activity, selectivity, and stability.    
+Results are visualised with interactive molecular viewers and performance plots. The researcher compares candidate designs side by side and exports the most promising ones for experimental testing.    
+After running experiments, the researcher logs outcomes (measured yield, selectivity, enzyme activity) back into the platform. The system compares AI predictions against actual results, surfaces discrepancies that may reveal model weaknesses, and uses the new data to retrain its prediction models.    
+ 
+
+Sample Scenario
+
+To help you visualise the problem, consider a representative scenario:    A research team at GPS Renewables is developing catalysts for ethanol-to-jet fuel conversion. The lead researcher enters the target reaction into the platform. The platform retrieves 23 known catalysts from the Open Catalyst Project and BRENDA databases. The generative AI module proposes 8 novel candidate designs — structural variants of the top performers, optimised for the specific reaction conditions. 
+
+Predictive models rank all 31 candidates (23 known + 8 novel) by predicted activity and stability. The results appear on an interactive performance plot. The researcher selects the top 5 candidates and exports them for synthesis.    
+
+After 3 weeks of bench testing, the researcher logs the experimental results into the platform: 2 candidates exceeded predictions, 1 matched, and 2 underperformed. The platform flags the 2 underperformers, compares predicted vs. actual activity, and surfaces a hypothesis — a structural feature that the model had underweighted appears correlated with the performance gap.    
+
+The model is retrained with this new data. A junior researcher on the same project reviews the annotations, adds his own experimental observations, and proposes a follow-up experiment exploring the flagged structural feature. The entire workflow — from the original query to the follow-up hypothesis — is tracked in the platform with full attribution and version history.    
+
+ 
+
+What Your Solution Should Cover
+
+Round 1 of this hackathon is a written solution submission. Your solution document should make clear how you would build this platform. At minimum, it should cover:
+
+Your understanding of the problem and the real-world constraints of catalyst andenzyme discovery, in your own words.    
+Your inclusion of chemical engineers and/or biologists (subject matter experts) as teammembers or advisors.    
+A clear system architecture covering the data layer (scientific databases, data ingestion),AI/ML layer (prediction models, generative design), simulation layer (molecularmodelling, reaction energy estimation, metabolic flux), and user interface (dashboards,molecular/pathway visualisation).    
+Your approach to data feedback loops: how researchers log experimental outcomes, howmodels are retrained (trigger, frequency, safeguards against data drift), how predictionsare compared against actual results, and how data provenance and quality are managedacross sources (published literature, internal experiments, high-throughput screening).    
+Justification of technology choices, and identified risks and trade-offs.    
+A realistic development roadmap distinguishing what can be demonstrated at thehackathon from what would be built in a longer-term pilot with GPS Renewables.    

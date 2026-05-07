@@ -1,0 +1,82 @@
+[
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1001",
+    "position": 1,
+    "filepath": "src/pages/slides/01_Cover.tsx",
+    "title": "CatalystAI",
+    "description": "Cover slide with hero molecular imagery and CatalystAI lockup.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1002",
+    "position": 2,
+    "filepath": "src/pages/slides/02_Problem.tsx",
+    "title": "The Problem",
+    "description": "India's catalyst R&D bottleneck — import bill, decade-long cycles, paper notebooks, SAF mandate.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1003",
+    "position": 3,
+    "filepath": "src/pages/slides/03_Solution.tsx",
+    "title": "Our Solution",
+    "description": "Closed-loop discovery: propose with Claude, validate in the wet lab, learn from every result.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1004",
+    "position": 4,
+    "filepath": "src/pages/slides/04_ChemicalCatalysis.tsx",
+    "title": "Direction 1: Chemical Catalysis",
+    "description": "Heterogeneous catalyst families ranked for ethanol-to-jet, CO₂ hydrogenation, and methanol synthesis.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1005",
+    "position": 5,
+    "filepath": "src/pages/slides/05_SyntheticBiology.tsx",
+    "title": "Direction 2: Synthetic Biology",
+    "description": "Engineered strains and enzyme variants for ethanol fermentation and biomass conversion.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1006",
+    "position": 6,
+    "filepath": "src/pages/slides/06_GPSRenewables.tsx",
+    "title": "Pilot: GPS Renewables",
+    "description": "Ethanol-to-jet pilot case study with cycle compression, candidate ranking, and accuracy gains.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1007",
+    "position": 7,
+    "filepath": "src/pages/slides/07_Architecture.tsx",
+    "title": "AI Architecture",
+    "description": "Claude Sonnet 4 augmented with PubChem and ChEMBL evidence, closed by a wet-lab feedback loop.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1008",
+    "position": 8,
+    "filepath": "src/pages/slides/08_ImpactBharat.tsx",
+    "title": "Impact for Bharat",
+    "description": "A sovereign discovery stack across energy, materials, and pharma verticals.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1009",
+    "position": 9,
+    "filepath": "src/pages/slides/09_Roadmap.tsx",
+    "title": "Roadmap",
+    "description": "Three-phase roadmap from GPS Renewables pilot to multi-lab rollout to national discovery layer.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "0a3c8e1e-1f8e-4f3a-9b48-1e7f5a8b1010",
+    "position": 10,
+    "filepath": "src/pages/slides/10_Closing.tsx",
+    "title": "Thank You",
+    "description": "Closing slide with vision statement, hackathon credits, and pilot partner.",
+    "speakerNotes": ""
+  }
+]

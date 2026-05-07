@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "sHqKRG9YVUTNaXBS2y3Zg"
+uri = "file://artifacts/pitch-deck/public/hero-molecule.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "TujTbRTmkPpVgR-wkUl5q"
+uri = "file://artifacts/pitch-deck/public/biorefinery.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "emOvsVacsod4WZFBRka7R"
+uri = "file://artifacts/pitch-deck/public/india-network.png"
+type = "image"
+title = "generated_image"

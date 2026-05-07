@@ -1,0 +1,1101 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: reactions
+    description: Chemical reactions and bioconversions
+  - name: candidates
+    description: Catalyst and enzyme candidates
+  - name: experiments
+    description: Experimental feedback and results
+  - name: annotations
+    description: Researcher annotations and collaboration
+  - name: retraining
+    description: Model retraining runs
+  - name: dashboard
+    description: Dashboard and summary stats
+  - name: export
+    description: Data export operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /reactions:
+    get:
+      operationId: listReactions
+      tags: [reactions]
+      summary: List all reactions
+      responses:
+        "200":
+          description: List of reactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reaction"
+    post:
+      operationId: createReaction
+      tags: [reactions]
+      summary: Create a new reaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReactionBody"
+      responses:
+        "201":
+          description: Created reaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+
+  /reactions/{id}:
+    get:
+      operationId: getReaction
+      tags: [reactions]
+      summary: Get a reaction by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reaction details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateReaction
+      tags: [reactions]
+      summary: Update a reaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReactionBody"
+      responses:
+        "200":
+          description: Updated reaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reaction"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteReaction
+      tags: [reactions]
+      summary: Delete a reaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /reactions/{id}/candidates:
+    get:
+      operationId: listCandidatesForReaction
+      tags: [candidates]
+      summary: List candidates for a reaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          required: false
+          description: Field to sort candidates by
+          schema:
+            type: string
+            enum:
+              - rank
+              - predictedActivity
+              - predictedSelectivity
+              - predictedStability
+              - confidenceScore
+        - name: sortDir
+          in: query
+          required: false
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: source
+          in: query
+          required: false
+          description: Filter by candidate source
+          schema:
+            type: string
+            enum: [generated, literature]
+      responses:
+        "200":
+          description: List of candidates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Candidate"
+
+  /reactions/{id}/generate-candidates:
+    post:
+      operationId: generateCandidates
+      tags: [candidates]
+      summary: AI-generate novel candidate designs for a reaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateCandidatesBody"
+      responses:
+        "200":
+          description: Generated candidates saved and returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Candidate"
+
+  /reactions/{id}/search-candidates:
+    post:
+      operationId: searchCandidates
+      tags: [candidates]
+      summary: Search PubChem and ChEMBL for known literature candidates and persist them
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Persisted literature candidates with cheminformatics metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchCandidatesResponse"
+        "404":
+          description: Reaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /reactions/{id}/export-candidates-csv:
+    get:
+      operationId: exportCandidatesCsv
+      tags: [export]
+      summary: Export candidates for a reaction as CSV
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /candidates/{id}:
+    get:
+      operationId: getCandidate
+      tags: [candidates]
+      summary: Get a candidate by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Candidate details with experiments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateCandidate
+      tags: [candidates]
+      summary: Update a candidate's predicted metrics or metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCandidateBody"
+      responses:
+        "200":
+          description: Updated candidate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCandidate
+      tags: [candidates]
+      summary: Delete a candidate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /experiments:
+    get:
+      operationId: listExperiments
+      tags: [experiments]
+      summary: List all experiments
+      responses:
+        "200":
+          description: List of experiments with candidate info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExperimentWithCandidate"
+    post:
+      operationId: createExperiment
+      tags: [experiments]
+      summary: Log experimental results for a candidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExperimentBody"
+      responses:
+        "201":
+          description: Created experiment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experiment"
+
+  /experiments/{id}:
+    get:
+      operationId: getExperiment
+      tags: [experiments]
+      summary: Get an experiment by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Experiment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExperimentWithCandidate"
+    put:
+      operationId: updateExperiment
+      tags: [experiments]
+      summary: Update an experiment's notes or status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExperimentBody"
+      responses:
+        "200":
+          description: Updated experiment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experiment"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteExperiment
+      tags: [experiments]
+      summary: Delete an experiment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /experiments/{id}/analyze-discrepancy:
+    post:
+      operationId: analyzeDiscrepancy
+      tags: [experiments]
+      summary: AI-analyze prediction vs actual discrepancy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Hypothesis generated and saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscrepancyAnalysis"
+
+  /annotations:
+    get:
+      operationId: listAnnotations
+      tags: [annotations]
+      summary: List all annotations
+      responses:
+        "200":
+          description: List of annotations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Annotation"
+    post:
+      operationId: createAnnotation
+      tags: [annotations]
+      summary: Add a researcher annotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAnnotationBody"
+      responses:
+        "201":
+          description: Created annotation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Annotation"
+
+  /annotations/{id}:
+    delete:
+      operationId: deleteAnnotation
+      tags: [annotations]
+      summary: Delete an annotation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /retraining-runs:
+    get:
+      operationId: listRetrainingRuns
+      tags: [retraining]
+      summary: List all retraining runs
+      responses:
+        "200":
+          description: List of retraining runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RetrainingRun"
+    post:
+      operationId: triggerRetrainingRun
+      tags: [retraining]
+      summary: Trigger a new model retraining run
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriggerRetrainingBody"
+      responses:
+        "201":
+          description: Retraining run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RetrainingRun"
+
+  /export/session:
+    get:
+      operationId: exportSession
+      tags: [export]
+      summary: Export complete discovery session as JSON
+      responses:
+        "200":
+          description: Full session JSON export
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionExport"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    DashboardStats:
+      type: object
+      properties:
+        totalReactions:
+          type: integer
+        totalCandidates:
+          type: integer
+        totalExperiments:
+          type: integer
+        generatedCandidates:
+          type: integer
+        avgPredictionAccuracy:
+          type: number
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+        topCandidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candidate"
+      required:
+        - totalReactions
+        - totalCandidates
+        - totalExperiments
+        - generatedCandidates
+        - avgPredictionAccuracy
+        - recentActivity
+        - topCandidates
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        author:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - type
+        - description
+        - author
+        - createdAt
+
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        equation:
+          type: string
+        targetProduct:
+          type: string
+        conditions:
+          type: string
+        description:
+          type: string
+        domain:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - equation
+        - targetProduct
+        - conditions
+        - description
+        - domain
+        - createdAt
+        - updatedAt
+
+    CreateReactionBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        equation:
+          type: string
+        targetProduct:
+          type: string
+        conditions:
+          type: string
+        description:
+          type: string
+        domain:
+          type: string
+      required:
+        - name
+        - type
+        - equation
+        - targetProduct
+        - conditions
+        - description
+        - domain
+
+    UpdateReactionBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        equation:
+          type: string
+        targetProduct:
+          type: string
+        conditions:
+          type: string
+        description:
+          type: string
+        domain:
+          type: string
+
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: integer
+        reactionId:
+          type: integer
+        name:
+          type: string
+        formula:
+          type: string
+        source:
+          type: string
+        sourceDb:
+          type: ["string", "null"]
+        candidateType:
+          type: ["string", "null"]
+        routeType:
+          type: ["string", "null"]
+        predictedActivity:
+          type: number
+        predictedSelectivity:
+          type: number
+        predictedStability:
+          type: number
+        confidenceScore:
+          type: number
+        feedstockFitScore:
+          type: ["number", "null"]
+        costScore:
+          type: ["number", "null"]
+        sustainabilityScore:
+          type: ["number", "null"]
+        scalabilityScore:
+          type: ["number", "null"]
+        uncertaintyScore:
+          type: ["number", "null"]
+        mechanismText:
+          type: string
+        structureData:
+          type: string
+        evidenceText:
+          type: ["string", "null"]
+        energyProfileData:
+          type: ["string", "null"]
+        pathwayData:
+          type: ["string", "null"]
+        rank:
+          type: ["integer", "null"]
+        pubchemCid:
+          type: ["integer", "null"]
+        chemblId:
+          type: ["string", "null"]
+        molecularWeight:
+          type: ["number", "null"]
+        logP:
+          type: ["number", "null"]
+        tpsa:
+          type: ["number", "null"]
+        canonicalSmiles:
+          type: ["string", "null"]
+        iupacName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - reactionId
+        - name
+        - formula
+        - source
+        - predictedActivity
+        - predictedSelectivity
+        - predictedStability
+        - confidenceScore
+        - mechanismText
+        - structureData
+        - createdAt
+        - updatedAt
+
+    SearchCandidatesResponse:
+      type: object
+      properties:
+        query:
+          type: string
+        sourcesQueried:
+          type: array
+          items:
+            type: string
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candidate"
+      required:
+        - query
+        - sourcesQueried
+        - candidates
+
+    UpdateCandidateBody:
+      type: object
+      properties:
+        name:
+          type: string
+        mechanismText:
+          type: string
+        predictedActivity:
+          type: number
+        predictedSelectivity:
+          type: number
+        predictedStability:
+          type: number
+        confidenceScore:
+          type: number
+        rank:
+          type: ["integer", "null"]
+
+    CandidateDetail:
+      type: object
+      properties:
+        candidate:
+          $ref: "#/components/schemas/Candidate"
+        experiments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Experiment"
+      required:
+        - candidate
+        - experiments
+
+    GenerateCandidatesBody:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+        - count
+
+    Experiment:
+      type: object
+      properties:
+        id:
+          type: integer
+        candidateId:
+          type: integer
+        measuredActivity:
+          type: number
+        measuredSelectivity:
+          type: number
+        measuredYield:
+          type: number
+        researcherName:
+          type: string
+        notes:
+          type: ["string", "null"]
+        status:
+          type: string
+        discrepancyHypothesis:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - candidateId
+        - measuredActivity
+        - measuredSelectivity
+        - measuredYield
+        - researcherName
+        - status
+        - createdAt
+        - updatedAt
+
+    ExperimentWithCandidate:
+      type: object
+      properties:
+        id:
+          type: integer
+        candidateId:
+          type: integer
+        measuredActivity:
+          type: number
+        measuredSelectivity:
+          type: number
+        measuredYield:
+          type: number
+        researcherName:
+          type: string
+        notes:
+          type: ["string", "null"]
+        status:
+          type: string
+        discrepancyHypothesis:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        candidateName:
+          type: string
+        candidateFormula:
+          type: string
+        reactionName:
+          type: string
+        predictedActivity:
+          type: number
+        predictedSelectivity:
+          type: number
+      required:
+        - id
+        - candidateId
+        - measuredActivity
+        - measuredSelectivity
+        - measuredYield
+        - researcherName
+        - status
+        - createdAt
+        - updatedAt
+        - candidateName
+        - candidateFormula
+        - reactionName
+        - predictedActivity
+        - predictedSelectivity
+
+    UpdateExperimentBody:
+      type: object
+      properties:
+        notes:
+          type: string
+        status:
+          type: string
+
+    CreateExperimentBody:
+      type: object
+      properties:
+        candidateId:
+          type: integer
+        measuredActivity:
+          type: number
+        measuredSelectivity:
+          type: number
+        measuredYield:
+          type: number
+        researcherName:
+          type: string
+        notes:
+          type: string
+      required:
+        - candidateId
+        - measuredActivity
+        - measuredSelectivity
+        - measuredYield
+        - researcherName
+
+    DiscrepancyAnalysis:
+      type: object
+      properties:
+        experimentId:
+          type: integer
+        hypothesis:
+          type: string
+      required:
+        - experimentId
+        - hypothesis
+
+    Annotation:
+      type: object
+      properties:
+        id:
+          type: integer
+        experimentId:
+          type: integer
+        author:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+        experimentSummary:
+          type: string
+        candidateName:
+          type: string
+      required:
+        - id
+        - experimentId
+        - author
+        - content
+        - createdAt
+        - experimentSummary
+        - candidateName
+
+    CreateAnnotationBody:
+      type: object
+      properties:
+        experimentId:
+          type: integer
+        author:
+          type: string
+        content:
+          type: string
+      required:
+        - experimentId
+        - author
+        - content
+
+    RetrainingRun:
+      type: object
+      properties:
+        id:
+          type: integer
+        triggeredBy:
+          type: string
+        status:
+          type: string
+        accuracyBefore:
+          type: ["number", "null"]
+        accuracyAfter:
+          type: ["number", "null"]
+        dataPointsUsed:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        completedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - triggeredBy
+        - status
+        - createdAt
+
+    TriggerRetrainingBody:
+      type: object
+      properties:
+        triggeredBy:
+          type: string
+      required:
+        - triggeredBy
+
+    SessionExport:
+      type: object
+      properties:
+        exportedAt:
+          type: string
+        version:
+          type: string
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reaction"
+        candidates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candidate"
+        experiments:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperimentWithCandidate"
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Annotation"
+        retrainingRuns:
+          type: array
+          items:
+            $ref: "#/components/schemas/RetrainingRun"
+      required:
+        - exportedAt
+        - version
+        - reactions
+        - candidates
+        - experiments
+        - annotations
+        - retrainingRuns

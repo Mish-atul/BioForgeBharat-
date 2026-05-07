@@ -1,0 +1,10 @@
+{
+  "buildCommand": "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/catalyst-ai run build",
+  "outputDirectory": "artifacts/catalyst-ai/dist/public",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
