@@ -45,6 +45,15 @@ function jsonString(value: unknown, fallback: unknown): string {
   return JSON.stringify(fallback);
 }
 
+/** Small deterministic-ish RNG seeded by a number. */
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) & 0x7fffffff;
+    return s / 0x7fffffff;
+  };
+}
+
 function normalizeCandidate(raw: Record<string, unknown>, reaction: Reaction, i: number): DiscoveryCandidate {
   const isBio = reaction.domain === "synthetic-biology";
   const fallbackStructure = {
@@ -102,40 +111,98 @@ function normalizeCandidate(raw: Record<string, unknown>, reaction: Reaction, i:
   };
 }
 
+// ─── Expanded catalyst & bio-route pools ─────────────────────────────────────
+// 25 catalyst templates and 25 bio-route templates so each generation picks
+// a unique random subset — no two "Generate" clicks look the same.
+
+const CATALYST_POOL: [string, string, string][] = [
+  ["Ni-La/HZSM-5 Water-Tolerant", "Ni·La₂O₃/SiO₂·Al₂O₃", "La promoter stabilizes Ni dispersion and reduces water-induced deactivation during ethanol-to-jet upgrading."],
+  ["Cu-ZnO/SAPO-34 Tandem", "Cu·ZnO/SAPO-34", "Cu-ZnO controls oxygenate activation while SAPO-34 shape-selective acidity favors C8-C12 hydrocarbon formation."],
+  ["CoFe₂O₄/H-Beta Spinel", "CoFe₂O₄/BEA", "Spinel redox sites resist sintering and H-Beta pores improve jet-range selectivity."],
+  ["In₂O₃-ZrO₂ Methanol Selective", "In₂O₃·ZrO₂", "Oxygen vacancies support CO₂ activation while ZrO₂ improves thermal durability for green methanol."],
+  ["Hierarchical ZSM-5 Core-Shell Ni", "Ni@SiO₂/HZSM-5", "A thin silica shell controls diffusion and slows coke formation around the Ni active phase."],
+  ["Pd-Ga Single Atom Alloy", "Pd₁Ga₃/CeO₂", "Isolated Pd atoms on Ga₃ sites achieve near-unity CO₂ selectivity with minimal H₂ consumption."],
+  ["Fe-Mn/K₂O Fischer-Tropsch", "Fe₃Mn₁/K₂O-Al₂O₃", "Potassium promotion shifts FT product slate toward olefins, while Mn improves iron carbide stability."],
+  ["Ru-MoS₂ Hydrodeoxygenation", "Ru/MoS₂-TiO₂", "Sulfide-phase Ru edges selectively cleave C–O bonds in pyrolysis bio-oil without ring saturation."],
+  ["Cu₃Sn Intermetallic CO₂RR", "Cu₃Sn/C", "Ordered intermetallic suppresses hydrogen evolution and tunes CO₂ electroreduction to ethanol."],
+  ["Pt-CeO₂ Water-Gas Shift", "Pt/CeO₂-rod", "CeO₂ rod morphology maximizes oxygen storage capacity for low-temperature WGS under syngas conditions."],
+  ["V₂O₅-WO₃/TiO₂ Dual SCR", "V₂O₅·WO₃/TiO₂", "Tungsten stabilizes vanadium sites and broadens temperature window for NOx reduction with NH₃."],
+  ["Mo₂C Carbide Dry Reforming", "Mo₂C/SiO₂", "Carbide surface activates CO₂ via a Mars-van Krevelen mechanism while resisting coke at 700°C."],
+  ["Ag-Cu Bimetallic Ethylene", "Ag₃Cu₁/α-Al₂O₃", "Cu promoter lowers Ag activation energy for epoxidation and suppresses total combustion."],
+  ["ZIF-8 Derived Zn-N-C Electro", "Zn-N₄/C", "Atomic Zn sites in nitrogen-doped carbon catalyze CO₂ to CO with > 95% Faradaic efficiency."],
+  ["Rh-Mn/SiO₂ Ethanol Synthesis", "Rh₂Mn₁/SiO₂", "Mn promotion enhances CO insertion kinetics to selectively produce ethanol from syngas."],
+  ["NiFe LDH OER Electrocatalyst", "NiFe-LDH/Ni foam", "Layered double hydroxide provides abundant edge sites for alkaline oxygen evolution at 200 mV overpotential."],
+  ["CuCrO₂ Delafossite Methanol", "CuCrO₂-δ", "P-type delafossite with oxygen vacancies drives CO₂ hydrogenation toward methanol at 180°C."],
+  ["Sn-Beta Zeolite Biomass", "Sn-BEA", "Isomorphous Sn in BEA framework enables glucose isomerization to fructose for HMF production."],
+  ["Co-N-C Single Site ORR", "Co-N₄/CNT", "Pyrolyzed Co-porphyrin on carbon nanotubes gives near-Pt ORR activity in acidic PEM fuel cells."],
+  ["TiO₂-P25 Photocatalytic H₂", "TiO₂-P25/Pt", "Degussa P25 anatase-rutile junction with Pt co-catalyst achieves 4.2% solar-to-hydrogen efficiency."],
+  ["Cs-Ru/MgO Ammonia Synthesis", "Cs₂O-Ru/MgO", "Cs electronic promoter dramatically lowers N₂ dissociation barrier on Ru step sites."],
+  ["AuPd/TiO₂ Direct H₂O₂", "Au₅₀Pd₅₀/TiO₂", "Core-shell AuPd nanoparticles suppress H₂O₂ decomposition and yield > 90% selectivity."],
+  ["MnO₂ Birnessite Water Oxid", "δ-MnO₂/FTO", "Layered birnessite manganese oxide mimics PSII-OEC for neutral-pH water oxidation."],
+  ["La₀.₆Sr₀.₄CoO₃ Perovskite", "LSCO-δ", "A-site deficiency creates oxygen vacancies for high O₂⁻ mobility in solid oxide fuel cells."],
+  ["Ni₃Fe/CeO₂-ZrO₂ Tri-Reform", "Ni₃Fe/CZO", "Iron alloying suppresses Ni sintering and coke in combined steam-dry-partial oxidation reforming."],
+];
+
+const BIO_POOL: [string, string, string][] = [
+  ["S. cerevisiae PDC1↑ ADH2Δ GPD1Δ", "S. cerevisiae PDC1↑ ADH2Δ GPD1Δ", "Redirects pyruvate and acetaldehyde flux toward ethanol while suppressing glycerol and ethanol re-oxidation."],
+  ["Z. mobilis Xylose+ SAF Precursor", "Z. mobilis xylA/xylB↑ adhB↑", "Adds C5 sugar utilization to improve Indian lignocellulosic feedstock fit."],
+  ["C. ljungdahlii Syngas-Ethanol", "C. ljungdahlii adhE2↑ acsB↑", "Improves Wood-Ljungdahl pathway flux from syngas toward ethanol."],
+  ["E. coli Fatty Alcohol Route", "E. coli atoB↑ fadDΔ acr1↑", "Builds hydrocarbon precursor pathway with reduced beta-oxidation drain."],
+  ["Cellulase Cocktail Thermostable", "Cel7A-E217Q + Bgl1↑", "Raises biomass saccharification stability before fermentation."],
+  ["Yarrowia lipolytica Lipid Acc", "Y. lipolytica DGA1↑ MFE1Δ", "Boosts triacylglycerol accumulation from waste glycerol for biodiesel precursor."],
+  ["Synechocystis Ethylene Pathway", "Synechocystis efe↑ slr0168Δ", "Photosynthetic ethylene production via efe expression with competing pathway knockout."],
+  ["Pichia pastoris Isobutanol", "P. pastoris kivD↑ adhA↑ ilvCΔ", "Redirects valine pathway intermediates toward isobutanol via Ehrlich pathway engineering."],
+  ["Bacillus subtilis PHA Accum", "B. subtilis phaCAB↑ sigF Δ", "Poly-3-hydroxybutyrate production from agri-waste sugars via optimized PHA synthase operon."],
+  ["Aspergillus niger Citric Acid", "A. niger goxC Δ pfkA↑", "Eliminates gluconate shunt and enhances phosphofructokinase flux toward citric acid."],
+  ["Pseudomonas putida Muconate", "P. putida catA↑ pcaHG Δ", "Channels catechol toward muconic acid, a precursor for adipic acid and nylon intermediates."],
+  ["Corynebacterium glutamicum Lys", "C. glutamicum lysC-T311I dapA↑", "Feedback-resistant aspartokinase pushes carbon toward L-lysine overproduction."],
+  ["Rhodococcus opacus TAG Route", "R. opacus tadA↑ nlpR↑", "Enhanced triacylglycerol accumulation from lignin-derived aromatics for drop-in biodiesel."],
+  ["Acetobacterium woodii H₂-Acetate", "A. woodii hydABCD↑ pta↑", "Improved hydrogenase and phosphotransacetylase flux for H₂+CO₂ to acetic acid."],
+  ["Cupriavidus necator PHB-HV", "C. necator phaC-A510V bktB↑", "Point mutation broadens PHA synthase substrate range for HV copolymer production."],
+  ["E. coli Mevalonate Isoprene", "E. coli mvk↑ ispS↑ dxs Δ", "Mevalonate pathway for isoprene production independent of native MEP pathway."],
+  ["Klebsiella pneumoniae 1,3-PDO", "K. pneumoniae dhaB↑ yqhD↑", "Enhanced glycerol dehydratase and alcohol dehydrogenase for 1,3-propanediol yield."],
+  ["Clostridium acetobutylicum ABE", "C. acetobutylicum adhE1↑ ctfAB↑", "Improved solventogenesis shift for higher butanol-to-acetone ratio in ABE fermentation."],
+  ["Ralstonia eutropha Autotrophic", "R. eutropha cbbL↑ phaC↑", "CO₂-fixing autotrophic PHB production via enhanced RuBisCO and PHA synthase."],
+  ["Thermoanaerobacterium Ethanol", "T. saccharolyticum adhE↑ ldh Δ", "Thermophilic ethanol producer with lactate dehydrogenase knockout for improved yield."],
+  ["Geobacillus Hemicellulase", "G. stearothermophilus xynA↑ celA↑", "Thermostable xylanase-cellulase co-expression for direct consolidated bioprocessing at 60°C."],
+  ["Anabaena Nitrogenase H₂", "Anabaena nifH↑ hupSL Δ", "Heterocyst-based biohydrogen via nitrogenase with uptake hydrogenase knockout."],
+  ["Chlorella Lipid Engineering", "Chlorella DGAT2↑ STA1 Δ", "Microalgal lipid hyperaccumulation by redirecting carbon from starch to TAG."],
+  ["Trichoderma reesei Cellulase", "T. reesei cbh1↑ xyr1↑ ace1Δ", "Hyper-cellulase secretion strain via transcription factor engineering for biomass saccharification."],
+  ["S. elongatus Sucrose Export", "S. elongatus cscB↑ sps↑", "Cyanobacterial sucrose secretion from CO₂ as feedstock for heterotrophic co-cultures."],
+];
+
 export function fallbackDiscoveryCandidates(reaction: Reaction, count: number): DiscoveryCandidate[] {
   const isBio = reaction.domain === "synthetic-biology";
-  const catalystNames = [
-    ["Ni-La/HZSM-5 Water-Tolerant", "Ni·La₂O₃/SiO₂·Al₂O₃", "La promoter stabilizes Ni dispersion and reduces water-induced deactivation during ethanol-to-jet upgrading."],
-    ["Cu-ZnO/SAPO-34 Tandem", "Cu·ZnO/SAPO-34", "Cu-ZnO controls oxygenate activation while SAPO-34 shape-selective acidity favors C8-C12 hydrocarbon formation."],
-    ["CoFe₂O₄/H-Beta Spinel", "CoFe₂O₄/BEA", "Spinel redox sites resist sintering and H-Beta pores improve jet-range selectivity."],
-    ["In₂O₃-ZrO₂ Methanol Selective", "In₂O₃·ZrO₂", "Oxygen vacancies support CO2 activation while ZrO2 improves thermal durability for green methanol."],
-    ["Hierarchical ZSM-5 Core-Shell Ni", "Ni@SiO₂/HZSM-5", "A thin silica shell controls diffusion and slows coke formation around the Ni active phase."],
-  ];
-  const bioNames = [
-    ["S. cerevisiae PDC1↑ ADH2Δ GPD1Δ", "S. cerevisiae PDC1↑ ADH2Δ GPD1Δ", "Redirects pyruvate and acetaldehyde flux toward ethanol while suppressing glycerol and ethanol re-oxidation."],
-    ["Zymomonas mobilis Xylose+ SAF Precursor", "Z. mobilis xylA/xylB↑ adhB↑", "Adds C5 sugar utilization to improve Indian lignocellulosic feedstock fit."],
-    ["Clostridium ljungdahlii Syngas-Ethanol", "C. ljungdahlii adhE2↑ acsB↑", "Improves Wood-Ljungdahl pathway flux from syngas toward ethanol."],
-    ["E. coli Fatty Alcohol Route", "E. coli atoB↑ fadDΔ acr1↑", "Builds hydrocarbon precursor pathway with reduced beta-oxidation drain."],
-    ["Cellulase Cocktail Thermostable Mix", "Cel7A-E217Q + Bgl1↑", "Raises biomass saccharification stability before fermentation."],
-  ];
+  const pool = isBio ? BIO_POOL : CATALYST_POOL;
+
+  // Use current timestamp as seed so every call gets a different shuffle
+  const rng = seededRandom(Date.now() ^ (reaction.id * 7919));
+
+  // Fisher-Yates shuffle a copy of the pool
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
 
   return Array.from({ length: count }, (_, i) => {
-    const [name, formula, mechanism] = (isBio ? bioNames : catalystNames)[i % 5];
-    const uniqueName = `${name} v${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+    const [name, formula, mechanism] = shuffled[i % shuffled.length];
+    // Randomize scores slightly so repeated calls look different
+    const jitter = () => (rng() - 0.5) * 0.12;
     return normalizeCandidate(
       {
-        name: uniqueName,
+        name,
         formula,
         mechanismText: mechanism,
-        predictedActivity: 0.88 - i * 0.035,
-        predictedSelectivity: 0.84 - i * 0.025,
-        predictedStability: 0.82 - i * 0.02,
-        confidenceScore: 0.76 - i * 0.015,
-        feedstockFitScore: 0.9 - i * 0.025,
-        costScore: 0.8 - i * 0.03,
-        sustainabilityScore: 0.92 - i * 0.018,
-        scalabilityScore: 0.84 - i * 0.02,
-        uncertaintyScore: 0.16 + i * 0.025,
+        predictedActivity: Math.max(0.4, Math.min(0.98, 0.88 - i * 0.035 + jitter())),
+        predictedSelectivity: Math.max(0.4, Math.min(0.98, 0.84 - i * 0.025 + jitter())),
+        predictedStability: Math.max(0.4, Math.min(0.98, 0.82 - i * 0.02 + jitter())),
+        confidenceScore: Math.max(0.35, Math.min(0.95, 0.76 - i * 0.015 + jitter())),
+        feedstockFitScore: Math.max(0.4, Math.min(0.98, 0.9 - i * 0.025 + jitter())),
+        costScore: Math.max(0.3, Math.min(0.95, 0.8 - i * 0.03 + jitter())),
+        sustainabilityScore: Math.max(0.5, Math.min(0.99, 0.92 - i * 0.018 + jitter())),
+        scalabilityScore: Math.max(0.4, Math.min(0.98, 0.84 - i * 0.02 + jitter())),
+        uncertaintyScore: Math.max(0.05, Math.min(0.5, 0.16 + i * 0.025 + jitter())),
       },
       reaction,
       i,
@@ -210,4 +277,3 @@ Return 3 concise sentences: probable cause, underweighted feature, next experime
   });
   return text?.trim() || fallback;
 }
-

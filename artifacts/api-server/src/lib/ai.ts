@@ -4,14 +4,12 @@ const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const REQUEST_TIMEOUT_MS = 60000;
 
 // Ordered list of models to try. We attempt each in order until one succeeds.
-// This handles region restrictions (preview models), rate limits (503), and
-// deprecated models gracefully without any manual intervention.
 const MODEL_CHAIN: string[] = (process.env.GEMINI_MODEL ?? "")
   ? [process.env.GEMINI_MODEL!]
   : [
-      "gemini-2.0-flash",       // GA, available everywhere, fast
-      "gemini-2.5-flash",       // GA but sometimes 503 under load
-      "gemini-1.5-flash",       // Older but universally available
+      "gemini-2.0-flash",           // GA, fast, widely available
+      "gemini-2.0-flash-lite",      // Lighter variant, broader quota
+      "gemini-1.5-flash-latest",    // Stable older model
     ];
 
 interface GeminiResponse {
