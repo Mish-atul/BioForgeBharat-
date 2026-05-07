@@ -1,5 +1,6 @@
 import type { Reaction } from "@workspace/db";
 import { extractJsonArray, generateGeminiText } from "./ai";
+import { generateMLCandidates } from "./ml_model";
 
 export interface DiscoveryCandidate {
   name: string;
@@ -22,6 +23,7 @@ export interface DiscoveryCandidate {
   pathwayData: string | null;
 }
 
+// ... helper functions ...
 function clampScore(value: unknown, fallback: number): number {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n)) return fallback;
@@ -45,7 +47,6 @@ function jsonString(value: unknown, fallback: unknown): string {
   return JSON.stringify(fallback);
 }
 
-/** Small deterministic-ish RNG seeded by a number. */
 function seededRandom(seed: number): () => number {
   let s = seed;
   return () => {
@@ -111,10 +112,6 @@ function normalizeCandidate(raw: Record<string, unknown>, reaction: Reaction, i:
   };
 }
 
-// ─── Expanded catalyst & bio-route pools ─────────────────────────────────────
-// 25 catalyst templates and 25 bio-route templates so each generation picks
-// a unique random subset — no two "Generate" clicks look the same.
-
 const CATALYST_POOL: [string, string, string][] = [
   ["Ni-La/HZSM-5 Water-Tolerant", "Ni·La₂O₃/SiO₂·Al₂O₃", "La promoter stabilizes Ni dispersion and reduces water-induced deactivation during ethanol-to-jet upgrading."],
   ["Cu-ZnO/SAPO-34 Tandem", "Cu·ZnO/SAPO-34", "Cu-ZnO controls oxygenate activation while SAPO-34 shape-selective acidity favors C8-C12 hydrocarbon formation."],
@@ -175,10 +172,8 @@ export function fallbackDiscoveryCandidates(reaction: Reaction, count: number): 
   const isBio = reaction.domain === "synthetic-biology";
   const pool = isBio ? BIO_POOL : CATALYST_POOL;
 
-  // Use current timestamp as seed so every call gets a different shuffle
   const rng = seededRandom(Date.now() ^ (reaction.id * 7919));
 
-  // Fisher-Yates shuffle a copy of the pool
   const shuffled = [...pool];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
@@ -187,7 +182,6 @@ export function fallbackDiscoveryCandidates(reaction: Reaction, count: number): 
 
   return Array.from({ length: count }, (_, i) => {
     const [name, formula, mechanism] = shuffled[i % shuffled.length];
-    // Randomize scores slightly so repeated calls look different
     const jitter = () => (rng() - 0.5) * 0.12;
     return normalizeCandidate(
       {
@@ -211,6 +205,15 @@ export function fallbackDiscoveryCandidates(reaction: Reaction, count: number): 
 }
 
 export async function generateDiscoveryCandidates(reaction: Reaction, count: number): Promise<DiscoveryCandidate[]> {
+  // 1. Try Primary Mechanism: Local trained ML Screening Engine
+  const mlCandidates = generateMLCandidates(reaction.domain, count);
+  if (mlCandidates && mlCandidates.length > 0) {
+    console.log(`Local ML engine successfully screened and identified ${mlCandidates.length} candidates.`);
+    return mlCandidates.map((c, i) => normalizeCandidate(c, reaction, i));
+  }
+
+  // 2. Fallback Mechanism: Gemini LLM
+  console.warn(`Local ML engine unavailable, falling back to Gemini LLM...`);
   const isBio = reaction.domain === "synthetic-biology";
   const system = isBio
     ? "You are a synthetic biology platform agent for enzyme engineering, metabolic flux, microbial pathway design, and safe human-in-the-loop recommendations."
@@ -233,6 +236,8 @@ Scores must be 0 to 1. structureData, energyProfileData, and pathwayData may be 
 
   const text = await generateGeminiText({ system, prompt });
   const parsed = text ? extractJsonArray(text) : null;
+  
+  // 3. Last Resort Fallback: Hardcoded unique pool
   if (!parsed || parsed.length === 0) return fallbackDiscoveryCandidates(reaction, count);
 
   return parsed.slice(0, count).map((raw, i) => normalizeCandidate(raw, reaction, i));
