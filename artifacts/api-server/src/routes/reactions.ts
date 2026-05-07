@@ -220,52 +220,68 @@ router.post("/reactions/:id/generate-candidates", async (req, res) => {
       .from(candidatesTable)
       .where(eq(candidatesTable.reactionId, reactionId));
 
-    // Augment AI candidates in parallel with real cheminformatics data
-    // (PubChem name → formula fallback, then ChEMBL). Lookups are best-effort
-    // and never block insertion if they fail.
-    const lookups = await Promise.all(
-      aiCandidates.map((c) =>
-        lookupCheminformatics(c.name, c.formula),
-      ),
-    );
-
-    const insertData = aiCandidates.map((c, i) => {
-      const cheminfo = lookups[i];
-      return {
-        reactionId,
-        name: c.name,
-        formula: c.formula,
-        source: "generated" as const,
-        sourceDb: cheminfo.sourceDb,
-        candidateType: c.candidateType,
-        routeType: c.routeType,
-        predictedActivity: c.predictedActivity,
-        predictedSelectivity: c.predictedSelectivity,
-        predictedStability: c.predictedStability,
-        confidenceScore: c.confidenceScore,
-        feedstockFitScore: c.feedstockFitScore,
-        costScore: c.costScore,
-        sustainabilityScore: c.sustainabilityScore,
-        scalabilityScore: c.scalabilityScore,
-        uncertaintyScore: c.uncertaintyScore,
-        mechanismText: c.mechanismText,
-        structureData: c.structureData,
-        evidenceText: c.evidenceText,
-        energyProfileData: c.energyProfileData,
-        pathwayData: c.pathwayData,
-        rank: existingCount.length + i + 1,
-        pubchemCid: cheminfo.pubchemCid,
-        chemblId: cheminfo.chemblId,
-        molecularWeight: cheminfo.molecularWeight,
-        logP: cheminfo.logP,
-        tpsa: cheminfo.tpsa,
-        canonicalSmiles: cheminfo.canonicalSmiles,
-        iupacName: cheminfo.iupacName,
-      };
-    });
+    // Insert candidates immediately WITHOUT waiting for cheminformatics
+    const insertData = aiCandidates.map((c, i) => ({
+      reactionId,
+      name: c.name,
+      formula: c.formula,
+      source: "generated" as const,
+      sourceDb: null,
+      candidateType: c.candidateType,
+      routeType: c.routeType,
+      predictedActivity: c.predictedActivity,
+      predictedSelectivity: c.predictedSelectivity,
+      predictedStability: c.predictedStability,
+      confidenceScore: c.confidenceScore,
+      feedstockFitScore: c.feedstockFitScore,
+      costScore: c.costScore,
+      sustainabilityScore: c.sustainabilityScore,
+      scalabilityScore: c.scalabilityScore,
+      uncertaintyScore: c.uncertaintyScore,
+      mechanismText: c.mechanismText,
+      structureData: c.structureData,
+      evidenceText: c.evidenceText,
+      energyProfileData: c.energyProfileData,
+      pathwayData: c.pathwayData,
+      rank: existingCount.length + i + 1,
+      pubchemCid: null,
+      chemblId: null,
+      molecularWeight: null,
+      logP: null,
+      tpsa: null,
+      canonicalSmiles: null,
+      iupacName: null,
+    }));
 
     const inserted = await db.insert(candidatesTable).values(insertData).returning();
     res.json(inserted);
+
+    // Fire-and-forget: enrich candidates with cheminformatics in the background
+    // This updates the DB rows after the response is already sent
+    Promise.all(
+      inserted.map(async (row, i) => {
+        try {
+          const cheminfo = await lookupCheminformatics(aiCandidates[i].name, aiCandidates[i].formula);
+          if (cheminfo.pubchemCid || cheminfo.chemblId) {
+            await db.update(candidatesTable)
+              .set({
+                sourceDb: cheminfo.sourceDb,
+                pubchemCid: cheminfo.pubchemCid,
+                chemblId: cheminfo.chemblId,
+                molecularWeight: cheminfo.molecularWeight,
+                logP: cheminfo.logP,
+                tpsa: cheminfo.tpsa,
+                canonicalSmiles: cheminfo.canonicalSmiles,
+                iupacName: cheminfo.iupacName,
+              })
+              .where(eq(candidatesTable.id, row.id));
+          }
+        } catch {
+          // Best-effort enrichment; failures are expected for composite catalyst names
+        }
+      }),
+    ).catch(() => {});
+
   } catch (err) {
     req.log.error({ err }, "Failed to generate candidates");
     res.status(500).json({ error: "Failed to generate candidates" });
