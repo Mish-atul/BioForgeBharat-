@@ -7,9 +7,10 @@ const REQUEST_TIMEOUT_MS = 60000;
 const MODEL_CHAIN: string[] = (process.env.GEMINI_MODEL ?? "")
   ? [process.env.GEMINI_MODEL!]
   : [
+      "gemini-flash-latest",        // Highly available alias, usually bypasses preview region locks
       "gemini-2.5-flash",           // Works from India + most regions
       "gemini-2.0-flash",           // GA fallback, fast
-      "gemini-2.0-flash-lite",      // Lighter variant, broader quota
+      "gemini-flash-lite-latest",   // Broadest availability alias
     ];
 
 interface GeminiResponse {
