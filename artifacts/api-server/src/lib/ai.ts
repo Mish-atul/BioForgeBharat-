@@ -1,8 +1,8 @@
 import { logger } from "./logger";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
-const DEFAULT_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
-const REQUEST_TIMEOUT_MS = 20000;
+const DEFAULT_MODEL = process.env.GEMINI_MODEL ?? "gemini-3-flash-preview";
+const REQUEST_TIMEOUT_MS = 60000;
 
 interface GeminiResponse {
   candidates?: Array<{

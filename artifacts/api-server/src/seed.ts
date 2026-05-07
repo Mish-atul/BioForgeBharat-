@@ -1,13 +1,13 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import * as schema from "@workspace/db/src/schema";
+import * as schema from "@workspace/db/schema";
 import {
   reactionsTable,
   candidatesTable,
   experimentsTable,
   annotationsTable,
   retrainingRunsTable,
-} from "@workspace/db/src/schema";
+} from "@workspace/db/schema";
 
 const { Pool } = pg;
 
@@ -298,7 +298,7 @@ async function seed() {
     accuracyAfter: 0.871,
     dataPointsUsed: 7,
     notes: "First retraining with experimental results from ETJ candidates 1-5 and CO₂ candidates 1-2. Prediction accuracy improved by 3.7 percentage points. Model now better calibrated for bifunctional acid/metal systems. Next retraining recommended after 5 more experimental points.",
-    completedAt: new Date().toISOString(),
+    completedAt: new Date(),
   });
 
   await pool.end();

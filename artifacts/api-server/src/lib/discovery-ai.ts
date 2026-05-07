@@ -121,9 +121,10 @@ export function fallbackDiscoveryCandidates(reaction: Reaction, count: number): 
 
   return Array.from({ length: count }, (_, i) => {
     const [name, formula, mechanism] = (isBio ? bioNames : catalystNames)[i % 5];
+    const uniqueName = `${name} v${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
     return normalizeCandidate(
       {
-        name,
+        name: uniqueName,
         formula,
         mechanismText: mechanism,
         predictedActivity: 0.88 - i * 0.035,

@@ -2,7 +2,7 @@ import { logger } from "./logger";
 
 const PUBCHEM_BASE = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
 const CHEMBL_BASE = "https://www.ebi.ac.uk/chembl/api/data";
-const REQUEST_TIMEOUT_MS = 5000;
+const REQUEST_TIMEOUT_MS = 15000;
 
 export interface PubChemProperties {
   pubchemCid: number;
