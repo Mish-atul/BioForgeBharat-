@@ -10,7 +10,7 @@ BioForgeBharat is a next-generation platform designed to accelerate the discover
 
 ### 1. **AI-Driven Candidate Generation**
 *   **Novel Designs**: Leverage Google Gemini to generate completely new catalyst and enzyme candidates for specific reactions like Ethanol-to-Jet fuel or CO₂ reduction.
-*   **Evidence-Based**: AI provides mechanism text and evidence-based reasoning for each generated candidate.
+*   **Evidence-Based**: AI provides mechanism text and evidence-based reasoning for each generated candidate..
 
 ### 2. **Automated Literature Search**
 *   **External Integration**: Seamlessly search **PubChem** and **ChEMBL** to import known literature candidates directly into your project.
