@@ -1,139 +1,276 @@
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Dna, ArrowRight, Leaf, Beaker, Network } from "lucide-react";
+import { Dna, ArrowRight, Beaker, Leaf, Network, TestTube2, FlaskConical } from "lucide-react";
+import { cn } from "@/lib/utils";
 
+// --- Framer Motion variants ---
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.15, duration: 0.7, ease: "easeOut" as const },
+    filter: "blur(0px)",
+    transition: { delay: i * 0.15, duration: 1, ease: [0.32, 0.72, 0, 1] as const },
   }),
 };
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.92 },
-  visible: (i: number) => ({
-    opacity: 1,
-    scale: 1,
-    transition: { delay: 0.5 + i * 0.12, duration: 0.6, ease: "easeOut" as const },
-  }),
-};
+// --- Components ---
+const GlassOrb = ({
+  className,
+  delay = 0,
+  duration = 10,
+  color = "bg-primary/20",
+  size = "w-64 h-64",
+}: {
+  className?: string;
+  delay?: number;
+  duration?: number;
+  color?: string;
+  size?: string;
+}) => (
+  <motion.div
+    className={cn(
+      "absolute rounded-full blur-[100px] pointer-events-none mix-blend-screen",
+      color,
+      size,
+      className
+    )}
+    animate={{
+      x: [0, 40, -20, 0],
+      y: [0, -40, 20, 0],
+      scale: [1, 1.2, 0.9, 1],
+    }}
+    transition={{
+      duration,
+      repeat: Infinity,
+      repeatType: "mirror",
+      ease: "easeInOut",
+      delay,
+    }}
+  />
+);
 
 export default function LandingPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 50, damping: 20 });
+  const yHero = useTransform(smoothProgress, [0, 1], ["0%", "50%"]);
+  const opacityHero = useTransform(smoothProgress, [0, 0.5], [1, 0]);
+  const scaleHero = useTransform(smoothProgress, [0, 0.5], [1, 0.9]);
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col overflow-hidden">
-      {/* Animated background orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <motion.div
-          className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary/5 blur-[100px]"
-          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-accent/5 blur-[100px]"
-          animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/3 blur-[120px]"
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
+    <div
+      ref={containerRef}
+      className="min-h-[100dvh] bg-[#050505] text-white selection:bg-primary/30 selection:text-primary-foreground overflow-hidden font-sans"
+    >
+      {/* 3D Z-Axis Ambient Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_0%,#050505_100%)] z-10" />
+        <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay z-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
+        
+        {/* Chemical/Molecular glowing orbs */}
+        <GlassOrb color="bg-emerald-500/20" size="w-[50vw] h-[50vw]" className="-top-[10%] -left-[10%]" duration={15} />
+        <GlassOrb color="bg-cyan-500/20" size="w-[40vw] h-[40vw]" className="top-[30%] -right-[10%]" delay={2} duration={12} />
+        <GlassOrb color="bg-blue-600/15" size="w-[60vw] h-[60vw]" className="-bottom-[20%] left-[20%]" delay={4} duration={18} />
       </div>
 
-      <header className="h-16 border-b border-border bg-background/70 backdrop-blur-lg flex items-center px-6 justify-between fixed top-0 w-full z-50">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex items-center gap-2 text-primary font-bold tracking-wider"
-        >
-          <Dna className="w-6 h-6" />
-          <span className="text-xl">BioForgeBharat</span>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
+      {/* Fluid Island Navigation */}
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 1, ease: [0.32, 0.72, 0, 1] as const }}
+        className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] md:w-max"
+      >
+        <div className="flex items-center justify-between gap-12 px-6 py-3 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-600 p-[1px]">
+              <div className="w-full h-full rounded-full bg-[#050505] flex items-center justify-center">
+                <Dna className="w-4 h-4 text-emerald-400" />
+              </div>
+            </div>
+            <span className="text-sm font-semibold tracking-wide text-white/90">BioForgeBharat</span>
+          </div>
           <Link href="/dashboard">
-            <Button variant="outline" className="hidden sm:flex border-primary text-primary hover:bg-primary/10">
-              Access Platform
-            </Button>
+            <button className="group relative px-5 py-2 text-xs font-semibold tracking-widest uppercase rounded-full bg-white text-black overflow-hidden active:scale-[0.98] transition-transform duration-300 ease-out">
+              <span className="relative z-10 flex items-center gap-2">
+                Access Platform
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
+              <div className="absolute inset-0 bg-emerald-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]" />
+            </button>
           </Link>
-        </motion.div>
-      </header>
+        </div>
+      </motion.header>
 
-      <main className="flex-1 flex flex-col items-center justify-center pt-24 pb-12 px-6 text-center max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" animate="visible" className="space-y-6">
-          <motion.div variants={fadeUp} custom={0} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-sm font-medium mb-4">
-            <Leaf className="w-4 h-4" />
-            <span>Sustainable Innovation for India's Low-Carbon Economy</span>
-          </motion.div>
-          
-          <motion.h1 variants={fadeUp} custom={1} className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
-            An Agentic AI-Powered{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-[gradient_4s_ease_infinite]">
-              Molecular Discovery
-            </span>{" "}
-            Platform
-          </motion.h1>
-          
-          <motion.p variants={fadeUp} custom={2} className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mt-6">
-            Accelerating the discovery of sustainable fuels, chemical catalysts, and synthetic biology pathways. 
-            Transform CO₂, biomass, and syngas into valuable resources by replacing slow trial-and-error experimentation 
-            with intelligent, predictive AI agents.
-          </motion.p>
-
-          <motion.div variants={fadeUp} custom={3} className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <Link href="/dashboard">
-              <Button size="lg" className="w-full sm:w-auto text-lg gap-2 bg-primary text-primary-foreground hover:bg-primary/90 h-14 px-8 shadow-[0_0_24px_rgba(34,197,94,0.2)] hover:shadow-[0_0_32px_rgba(34,197,94,0.35)] transition-shadow duration-500">
-                Launch Platform
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </Link>
-          </motion.div>
-        </motion.div>
-
+      {/* Hero Section */}
+      <motion.main
+        style={{ y: yHero, opacity: opacityHero, scale: scaleHero }}
+        className="relative z-10 pt-40 pb-32 px-6 flex flex-col items-center justify-center min-h-screen text-center"
+      >
         <motion.div
+          custom={0}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-24 w-full"
+          variants={fadeUp}
+          className="mb-8 rounded-full px-4 py-1.5 text-[11px] uppercase tracking-[0.2em] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 backdrop-blur-md flex items-center gap-2 shadow-[0_0_24px_rgba(16,185,129,0.1)]"
         >
-          {[
-            {
-              title: "Chemical Catalysis",
-              description: "AI-driven discovery and optimization for reactions like CO₂ + green H₂ → methanol and syngas → ethanol.",
-              icon: Beaker,
-            },
-            {
-              title: "Synthetic Biology",
-              description: "Assist in enzyme engineering, metabolic pathway design, and microbial systems for biofuel conversion.",
-              icon: Dna,
-            },
-            {
-              title: "Continuous Learning",
-              description: "Data feedback loops where experimental results flow back to retrain models and improve future predictions.",
-              icon: Network,
-            },
-          ].map((feature, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              custom={i}
-              whileHover={{ y: -4, transition: { duration: 0.25 } }}
-              className="p-6 rounded-xl border border-border bg-card/50 backdrop-blur text-left hover:border-primary/50 hover:shadow-[0_0_24px_rgba(34,197,94,0.06)] transition-all duration-300"
-            >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </motion.div>
-          ))}
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          Autonomous Molecular Discovery
         </motion.div>
-      </main>
 
-      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground mt-auto relative z-10">
-        <p>Built by Team NammaNexus · GPS Renewables OpenEnv Hackathon 2026</p>
+        <motion.h1
+          custom={1}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="text-5xl md:text-7xl lg:text-[7rem] font-bold tracking-tighter leading-[1.05] max-w-5xl mx-auto"
+        >
+          Synthesize the <br className="hidden md:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-emerald-200 to-cyan-500">
+            Molecules of Tomorrow.
+          </span>
+        </motion.h1>
+
+        <motion.p
+          custom={2}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="mt-8 text-lg md:text-xl text-white/50 max-w-2xl mx-auto font-light leading-relaxed"
+        >
+          BioForgeBharat uses intelligent AI agents to accelerate sustainable fuels,
+          catalyst engineering, and synthetic biology. Replacing trial-and-error with predictive intelligence.
+        </motion.p>
+
+        <motion.div
+          custom={3}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="mt-12 flex flex-col sm:flex-row items-center gap-6"
+        >
+          <Link href="/dashboard">
+            <button className="group flex items-center gap-4 bg-emerald-500 text-black px-2 pl-6 py-2 rounded-full font-medium text-lg active:scale-[0.98] transition-transform duration-300">
+              Initialize Agent
+              <div className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
+                <ArrowRight className="w-5 h-5" />
+              </div>
+            </button>
+          </Link>
+        </motion.div>
+      </motion.main>
+
+      {/* Feature Bento Grid (Double Bezel Architecture) */}
+      <section className="relative z-20 px-4 md:px-8 py-24 md:py-40 bg-[#050505] border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-20">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
+              Architecting the <br /> <span className="text-white/40">post-carbon economy.</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Main Feature - Large Col */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1, ease: [0.32, 0.72, 0, 1] as const }}
+              className="col-span-1 md:col-span-8 p-2 rounded-[2rem] bg-white/[0.02] border border-white/5 shadow-2xl group"
+            >
+              <div className="h-full w-full rounded-[calc(2rem-0.5rem)] bg-[#0a0a0a] border border-white/10 p-8 md:p-12 relative overflow-hidden flex flex-col justify-end min-h-[400px]">
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-6">
+                    <FlaskConical className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <h3 className="text-2xl md:text-4xl font-semibold mb-4 text-white">Chemical Catalysis</h3>
+                  <p className="text-white/50 text-lg max-w-md">
+                    AI-driven discovery for sustainable reactions. Turn CO₂ and green H₂ into viable methanol with unprecedented accuracy.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Side Feature 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1, delay: 0.1, ease: [0.32, 0.72, 0, 1] as const }}
+              className="col-span-1 md:col-span-4 p-2 rounded-[2rem] bg-white/[0.02] border border-white/5 shadow-2xl group"
+            >
+              <div className="h-full w-full rounded-[calc(2rem-0.5rem)] bg-[#0a0a0a] border border-white/10 p-8 relative overflow-hidden flex flex-col justify-end min-h-[400px]">
+                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center mb-6">
+                    <Dna className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-semibold mb-4 text-white">Synthetic Biology</h3>
+                  <p className="text-white/50">
+                    Enzyme engineering and metabolic pathway design for next-gen biofuel conversion.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Side Feature 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1, delay: 0.2, ease: [0.32, 0.72, 0, 1] as const }}
+              className="col-span-1 md:col-span-4 p-2 rounded-[2rem] bg-white/[0.02] border border-white/5 shadow-2xl group"
+            >
+              <div className="h-full w-full rounded-[calc(2rem-0.5rem)] bg-[#0a0a0a] border border-white/10 p-8 relative overflow-hidden flex flex-col justify-end min-h-[300px]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-6">
+                    <Network className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-semibold mb-4 text-white">Continuous Feedback</h3>
+                  <p className="text-white/50">
+                    Models retrain dynamically from experimental pipeline flows.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Bottom Wide Feature */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1, delay: 0.3, ease: [0.32, 0.72, 0, 1] as const }}
+              className="col-span-1 md:col-span-8 p-2 rounded-[2rem] bg-white/[0.02] border border-white/5 shadow-2xl group"
+            >
+              <div className="h-full w-full rounded-[calc(2rem-0.5rem)] bg-[#0a0a0a] border border-white/10 p-8 md:p-12 relative overflow-hidden flex items-center min-h-[300px]">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 blur-[80px] rounded-full" />
+                <div className="relative z-10 max-w-lg">
+                  <h3 className="text-2xl md:text-4xl font-semibold mb-4 text-white">Predictive Intelligence</h3>
+                  <p className="text-white/50 text-lg">
+                    Minimize lab time by simulating molecular interactions in a robust, agentic sandbox environment.
+                  </p>
+                  <div className="mt-8 flex items-center gap-4 text-sm font-medium text-emerald-400 cursor-pointer group-hover:text-emerald-300 transition-colors">
+                    Explore algorithms <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-500 ease-out" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 text-center text-white/30 text-sm border-t border-white/5 bg-[#050505]">
+        <p className="flex items-center justify-center gap-2">
+          Engineered for <span className="text-emerald-500/80 font-medium">GPS Renewables OpenEnv Hackathon 2026</span>
+        </p>
       </footer>
     </div>
   );

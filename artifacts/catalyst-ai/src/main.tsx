@@ -3,6 +3,6 @@ import { setBaseUrl } from "@workspace/api-client-react";
 import App from "./App";
 import "./index.css";
 
-setBaseUrl(import.meta.env.VITE_API_BASE_URL ?? null);
+setBaseUrl("https://bioforgebharat-api.onrender.com");
 
 createRoot(document.getElementById("root")!).render(<App />);
