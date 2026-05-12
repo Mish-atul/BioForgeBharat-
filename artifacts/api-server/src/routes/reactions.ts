@@ -603,7 +603,9 @@ router.post("/reactions/:id/agent-run", async (req, res) => {
       })),
     );
     const inserted = await db.insert(candidatesTable).values(rows).returning();
-    const topCandidate = [...inserted].sort((a, b) => (b.compositeScore ?? 0) - (a.compositeScore ?? 0))[0];
+    const topCandidate = [...inserted].sort(
+      (a, b) => (b.confidenceScore ?? 0) - (a.confidenceScore ?? 0),
+    )[0];
 
     await emit("screening", "Scored climate impact, toxicity, recyclability, scale-up, and commercial readiness.", {
       created: inserted.length,

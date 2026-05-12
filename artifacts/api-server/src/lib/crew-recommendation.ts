@@ -81,20 +81,23 @@ export function runCrewRecommendation(input: {
           domain: input.reaction.domain,
           description: input.reaction.description,
         },
-        candidates: input.candidates.map((candidate) => ({
-          name: candidate.name,
-          formula: candidate.formula,
-          activity: candidate.predictedActivity,
-          selectivity: candidate.predictedSelectivity,
-          stability: candidate.predictedStability,
-          confidence: candidate.confidenceScore,
-          composite: candidate.compositeScore,
-          climate: candidate.co2AvoidedPerTonne,
-          toxicity: candidate.toxicityLevel,
-          costTier: candidate.costTier,
-          zldCompatible: candidate.zldCompatible,
-          mechanism: candidate.mechanismText,
-        })),
+        candidates: input.candidates.map((candidate) => {
+          const row = candidate as Record<string, unknown>;
+          return {
+            name: candidate.name,
+            formula: candidate.formula,
+            activity: candidate.predictedActivity,
+            selectivity: candidate.predictedSelectivity,
+            stability: candidate.predictedStability,
+            confidence: candidate.confidenceScore,
+            composite: row["compositeScore"],
+            climate: row["co2AvoidedPerTonne"],
+            toxicity: row["toxicityLevel"],
+            costTier: row["costTier"],
+            zldCompatible: row["zldCompatible"],
+            mechanism: candidate.mechanismText,
+          };
+        }),
         evidence: input.evidence,
       }),
     );
