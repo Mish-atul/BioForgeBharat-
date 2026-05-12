@@ -3,7 +3,8 @@ services:
     name: bioforgebharat-api
     env: node
     plan: free
-    buildCommand: corepack enable && corepack prepare pnpm@10.24.0 --activate && NODE_OPTIONS=--max-old-space-size=4096 pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    # NODE_ENV=production is set below; pnpm would skip devDependencies during install (no esbuild).
+    buildCommand: npm install -g pnpm@10.24.0 && NODE_OPTIONS=--max-old-space-size=4096 NODE_ENV=development pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
     startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
     healthCheckPath: /api/healthz
     envVars:
