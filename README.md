@@ -27,7 +27,7 @@ BioForgeBharat is a next-generation platform designed to accelerate the discover
 
 ### 5. **Cheminformatics & Visualization**
 *   **Reaction Path Mapping**: Visualize energy profiles and reaction pathways.
-*   **Interactive Dashboards**: Real-time stats on reaction counts, candidate distribution, and prediction accuracy.
+*   **Interactive Dashboards**: Real-time stats on reaction counts, candidates distribution, and prediction accuracy.
 
 ---
 
