@@ -440,4 +440,35 @@ router.post("/reactions/:id/search-candidates", async (req, res) => {
   }
 });
 
+router.get("/reactions/:id/agent-stream", async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const steps = [
+    { step: "Analyzing bounds...", progress: 20 },
+    { step: "Estimating reactor size...", progress: 50 },
+    { step: "Generating climate narrative...", progress: 75 },
+    { step: "Saving to DB...", progress: 100 }
+  ];
+
+  let stepIdx = 0;
+  const intervalId = setInterval(() => {
+    if (stepIdx >= steps.length) {
+      clearInterval(intervalId);
+      res.write("event: done\ndata: {}\n\n");
+      res.end();
+      return;
+    }
+    const currentStep = steps[stepIdx];
+    res.write(`data: ${JSON.stringify(currentStep)}\n\n`);
+    stepIdx++;
+  }, 1000);
+
+  req.on("close", () => {
+    clearInterval(intervalId);
+  });
+});
+
 export default router;

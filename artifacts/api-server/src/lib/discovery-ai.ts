@@ -2,6 +2,8 @@ import type { Reaction } from "@workspace/db";
 import { extractJsonArray, generateGeminiText } from "./ai";
 import { generateMLCandidates } from "./ml_model";
 import { logger } from "./logger";
+import { estimateCO2AvoidedPerTonne, assignSDGTags } from "./climate";
+import { estimateToxicityScore, generateRecyclingCurve, estimateReactorSizing, calculateCompositeScore } from "./sustainability";
 
 export interface DiscoveryCandidate {
   name: string;
@@ -22,6 +24,19 @@ export interface DiscoveryCandidate {
   evidenceText: string;
   energyProfileData: string | null;
   pathwayData: string | null;
+  co2AvoidedPerTonne: number;
+  sdgTags: string;
+  climateNarrative: string;
+  toxicityScore: number;
+  toxicityLevel: string;
+  toxicityNotes: string;
+  toxicitySource: string;
+  recyclingRetention: string;
+  reactorType: string;
+  reactorVolumeMin: number;
+  reactorVolumeMax: number;
+  reactorConstraints: string;
+  compositeScore: number;
 }
 
 // ... helper functions ...
@@ -83,18 +98,45 @@ function normalizeCandidate(raw: Record<string, unknown>, reaction: Reaction, i:
     bottlenecks: ["NADH balance", "Product tolerance"],
   };
 
+  const name = stringValue(raw.name, isBio ? `Engineered BioRoute ${i + 1}` : `Bharat Catalyst ${i + 1}`);
+  const formula = stringValue(raw.formula, isBio ? "S. cerevisiae pathway edit" : "M/ZSM-5 variant");
+  const candidateType = stringValue(raw.candidateType, isBio ? "microbial-pathway" : "heterogeneous-catalyst");
+  const predictedActivity = clampScore(raw.predictedActivity, 0.78 - i * 0.03);
+  const predictedSelectivity = clampScore(raw.predictedSelectivity, 0.82 - i * 0.02);
+  const predictedStability = clampScore(raw.predictedStability, 0.76 - i * 0.025);
+  const sustainabilityScore = clampScore(raw.sustainabilityScore, 0.86 - i * 0.012);
+  const targetProduct = reaction.targetProduct;
+
+  const co2Avoided = estimateCO2AvoidedPerTonne(candidateType, targetProduct, predictedActivity, sustainabilityScore);
+  const sdgTags = assignSDGTags(targetProduct, reaction.domain);
+  const climateNarrative = `Enables ~${co2Avoided} kg CO2e reduction per tonne of feedstock, directly supporting ${sdgTags.join(" and ")}.`;
+
+  const toxicity = estimateToxicityScore(formula, candidateType, raw.molecularWeight as number | null, raw.logP as number | null);
+  const recyclingCurve = generateRecyclingCurve(predictedStability);
+  const reactor = estimateReactorSizing(reaction.domain, targetProduct, predictedActivity);
+
+  const compositeScore = calculateCompositeScore({
+    predictedActivity,
+    predictedSelectivity,
+    predictedStability,
+    toxicityScore: toxicity.score,
+    recyclingRetention: JSON.stringify(recyclingCurve),
+    sustainabilityScore,
+    costScore: clampScore(raw.costScore, 0.78 - i * 0.015)
+  });
+
   return {
-    name: stringValue(raw.name, isBio ? `Engineered BioRoute ${i + 1}` : `Bharat Catalyst ${i + 1}`),
-    formula: stringValue(raw.formula, isBio ? "S. cerevisiae pathway edit" : "M/ZSM-5 variant"),
-    candidateType: stringValue(raw.candidateType, isBio ? "microbial-pathway" : "heterogeneous-catalyst"),
+    name,
+    formula,
+    candidateType,
     routeType: stringValue(raw.routeType, isBio ? "synthetic-biology" : "chemical-catalysis"),
-    predictedActivity: clampScore(raw.predictedActivity, 0.78 - i * 0.03),
-    predictedSelectivity: clampScore(raw.predictedSelectivity, 0.82 - i * 0.02),
-    predictedStability: clampScore(raw.predictedStability, 0.76 - i * 0.025),
+    predictedActivity,
+    predictedSelectivity,
+    predictedStability,
     confidenceScore: clampScore(raw.confidenceScore, 0.72 - i * 0.015),
     feedstockFitScore: clampScore(raw.feedstockFitScore, 0.84 - i * 0.02),
     costScore: clampScore(raw.costScore, 0.78 - i * 0.015),
-    sustainabilityScore: clampScore(raw.sustainabilityScore, 0.86 - i * 0.012),
+    sustainabilityScore,
     scalabilityScore: clampScore(raw.scalabilityScore, 0.8 - i * 0.02),
     uncertaintyScore: clampScore(raw.uncertaintyScore, 0.18 + i * 0.025),
     mechanismText: stringValue(
@@ -110,6 +152,19 @@ function normalizeCandidate(raw: Record<string, unknown>, reaction: Reaction, i:
     ),
     energyProfileData: isBio ? null : jsonString(raw.energyProfileData, fallbackEnergy),
     pathwayData: isBio ? jsonString(raw.pathwayData, fallbackPathway) : null,
+    co2AvoidedPerTonne: co2Avoided,
+    sdgTags: JSON.stringify(sdgTags),
+    climateNarrative,
+    toxicityScore: toxicity.score,
+    toxicityLevel: toxicity.level,
+    toxicityNotes: toxicity.notes,
+    toxicitySource: toxicity.source,
+    recyclingRetention: JSON.stringify(recyclingCurve),
+    reactorType: reactor.type,
+    reactorVolumeMin: reactor.volumeMin,
+    reactorVolumeMax: reactor.volumeMax,
+    reactorConstraints: JSON.stringify(reactor.constraints),
+    compositeScore
   };
 }
 

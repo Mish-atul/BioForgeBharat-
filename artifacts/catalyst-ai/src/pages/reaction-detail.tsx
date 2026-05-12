@@ -208,6 +208,8 @@ export default function ReactionDetail() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
+  const [agentStatus, setAgentStatus] = useState<string | null>(null);
+  const [agentProgress, setAgentProgress] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchSummary, setSearchSummary] = useState<string | null>(null);
 
@@ -262,14 +264,38 @@ export default function ReactionDetail() {
 
   const handleGenerate = () => {
     setGenerating(true);
+    setAgentStatus("Initializing pipeline...");
+    setAgentProgress(0);
+
+    const es = new EventSource(`/api/reactions/${reactionId}/agent-stream`);
+    es.onmessage = (event) => {
+      if (event.data === "{}") return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.step) setAgentStatus(data.step);
+        if (data.progress) setAgentProgress(data.progress);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    es.addEventListener("done", () => {
+      es.close();
+    });
+
     generateCandidates.mutate(
       { id: reactionId, data: { count: 5 } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListCandidatesForReactionQueryKey(reactionId) });
           setGenerating(false);
+          setAgentStatus(null);
+          es.close();
         },
-        onError: () => setGenerating(false),
+        onError: () => {
+          setGenerating(false);
+          setAgentStatus(null);
+          es.close();
+        },
       }
     );
   };
@@ -366,6 +392,12 @@ export default function ReactionDetail() {
                 {isDomainBio ? "Synthetic Biology" : "Chemical Catalysis"}
               </Badge>
               <Badge variant="outline" className="text-xs font-mono">{reaction.type}</Badge>
+              {(reaction as any).tags && (reaction as any).tags.includes("GPS Renewables Scenario") && (
+                <Badge className="bg-green-600 hover:bg-green-700 text-white text-xs font-mono border-0">
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  GPS Renewables Pilot
+                </Badge>
+              )}
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-primary">{reaction.name}</h1>
           </div>
@@ -468,15 +500,28 @@ export default function ReactionDetail() {
             <span className="ml-2 text-sm font-mono text-muted-foreground">({candidates.length} found)</span>
           )}
         </h2>
-        <Button
-          onClick={handleGenerate}
-          disabled={generating || generateCandidates.isPending}
-          className="gap-2"
-          data-testid="btn-generate-candidates"
-        >
-          <Sparkles className="w-4 h-4" />
-          {generating || generateCandidates.isPending ? "Generating..." : "Generate AI Candidates"}
-        </Button>
+        <div className="flex items-center gap-4">
+          {agentStatus && (
+            <div className="flex items-center gap-3 text-sm text-muted-foreground animate-in fade-in">
+              <span className="font-mono text-xs animate-pulse text-primary">{agentStatus}</span>
+              <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${agentProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+          <Button
+            onClick={handleGenerate}
+            disabled={generating || generateCandidates.isPending}
+            className="gap-2"
+            data-testid="btn-generate-candidates"
+          >
+            <Sparkles className="w-4 h-4" />
+            {generating || generateCandidates.isPending ? "Generating..." : "Generate AI Candidates"}
+          </Button>
+        </div>
       </div>
 
       {/* Comparison toolbar */}

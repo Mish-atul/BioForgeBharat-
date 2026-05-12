@@ -40,7 +40,7 @@ const staggerChild = {
 export default function Dashboard() {
   const { data: stats, isLoading } = useGetDashboardStats();
 
-  if (isLoading || !stats) {
+  if (isLoading || !stats || !stats.topCandidates || !stats.recentActivity) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold tracking-tight">Platform Overview</h1>
@@ -124,7 +124,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-4">
-                {stats.topCandidates.map((candidate, i) => (
+                {(stats.topCandidates || []).map((candidate: any, i: number) => (
                   <motion.div key={candidate.id} variants={staggerChild}>
                     <Link href={`/candidates/${candidate.id}`}>
                       <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-background hover:border-primary hover:shadow-[0_0_12px_rgba(34,197,94,0.08)] transition-all duration-300 cursor-pointer group">
@@ -132,7 +132,13 @@ export default function Dashboard() {
                           <div className="font-mono text-sm font-bold text-foreground">{candidate.formula}</div>
                           <div className="text-xs text-muted-foreground">{candidate.name}</div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-6 text-sm">
+                          {candidate.uncertaintyScore != null && (
+                            <div className="text-right">
+                              <div className="text-xs text-muted-foreground">Uncertainty</div>
+                              <div className="font-mono text-destructive">{(candidate.uncertaintyScore * 100).toFixed(1)}%</div>
+                            </div>
+                          )}
                           <div className="text-right">
                             <div className="text-xs text-muted-foreground">Confidence</div>
                             <div className="font-mono text-accent">{(candidate.confidenceScore * 100).toFixed(1)}%</div>

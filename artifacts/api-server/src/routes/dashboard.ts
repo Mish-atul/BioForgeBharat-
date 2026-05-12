@@ -82,7 +82,7 @@ router.get("/dashboard/stats", async (req, res) => {
     const topCandidates = await db
       .select()
       .from(candidatesTable)
-      .orderBy(desc(candidatesTable.predictedActivity))
+      .orderBy(desc(candidatesTable.compositeScore))
       .limit(5);
 
     res.json({

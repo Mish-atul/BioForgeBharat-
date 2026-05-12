@@ -257,12 +257,120 @@ function parseJson<T>(value: string | null | undefined): T | null {
   }
 }
 
+function ClimateImpactPanel({ candidate }: { candidate: any }) {
+  const tags = parseJson<string[]>(candidate.sdgTags) || [];
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <span className="text-green-500">🌍</span> Climate Impact & SDGs
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-4 items-center">
+          <div className="rounded border border-border bg-background p-4 text-center min-w-[120px]">
+            <div className="text-3xl font-mono font-bold text-green-500">
+              {candidate.co2AvoidedPerTonne ?? "—"}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
+              kg CO₂e avoided / tonne
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground italic leading-relaxed flex-1">
+            "{candidate.climateNarrative ?? "No climate narrative generated."}"
+          </p>
+        </div>
+        {tags.length > 0 && (
+          <div className="flex gap-2 flex-wrap pt-2">
+            {tags.map((tag) => (
+              <Badge key={tag} className="bg-green-900/30 text-green-400 border border-green-800">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EngineeringPanel({ candidate }: { candidate: any }) {
+  const retention = parseJson<number[]>(candidate.recyclingRetention);
+  const constraints = parseJson<Record<string, string>>(candidate.reactorConstraints);
+  const toxicityColor = 
+    candidate.toxicityLevel === "Low" ? "text-green-500" : 
+    candidate.toxicityLevel === "Medium" ? "text-yellow-500" : "text-destructive";
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <span className="text-blue-500">⚙️</span> Engineering & Safety Metrics
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Toxicity */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="font-semibold">Toxicity / Safety</span>
+            <span className={`font-mono font-bold ${toxicityColor}`}>
+              {candidate.toxicityScore ?? "—"}/100 ({candidate.toxicityLevel ?? "Unknown"})
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">{candidate.toxicityNotes}</p>
+        </div>
+
+        {/* Reactor */}
+        <div className="space-y-2">
+          <div className="text-sm font-semibold">Scale-up Reactor Profile</div>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="rounded border border-border bg-background p-2">
+              <span className="text-muted-foreground uppercase text-[9px] block">Type</span>
+              <span className="font-medium">{candidate.reactorType ?? "—"}</span>
+            </div>
+            <div className="rounded border border-border bg-background p-2">
+              <span className="text-muted-foreground uppercase text-[9px] block">Min Volume</span>
+              <span className="font-medium">{candidate.reactorVolumeMin ?? "—"} L</span>
+            </div>
+          </div>
+          {constraints && (
+            <div className="flex gap-2 flex-wrap mt-2">
+              {Object.entries(constraints).map(([k, v]) => (
+                <Badge key={k} variant="outline" className="text-[10px] font-mono">
+                  {k}: {v}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recycling */}
+        {retention && retention.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm font-semibold mb-2">Recycling Retention Curve</div>
+            <ResponsiveContainer width="100%" height={100}>
+              <LineChart data={retention.map((v, i) => ({ cycle: i, retention: v }))}>
+                <CartesianGrid strokeDasharray="2 2" stroke="hsl(215 30% 18%)" vertical={false} />
+                <XAxis dataKey="cycle" tick={{ fill: "hsl(215 20% 65%)", fontSize: 9 }} minTickGap={10} />
+                <YAxis domain={[0, 100]} tick={{ fill: "hsl(215 20% 65%)", fontSize: 9 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Line type="monotone" dataKey="retention" stroke="#3b82f6" strokeWidth={2} dot={{ r: 2 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function ExtendedScoreGrid({ candidate }: { candidate: {
   feedstockFitScore?: number | null;
   costScore?: number | null;
   sustainabilityScore?: number | null;
   scalabilityScore?: number | null;
   uncertaintyScore?: number | null;
+  compositeScore?: number | null;
 } }) {
   const items = [
     ["Feedstock Fit", candidate.feedstockFitScore, "text-primary"],
@@ -277,7 +385,7 @@ function ExtendedScoreGrid({ candidate }: { candidate: {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Feasibility Scores</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <CardContent className="grid grid-cols-2 md:grid-cols-6 gap-3">
         {items.map(([label, value, color]) => (
           <div key={label} className="rounded border border-border bg-background/50 p-3">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
@@ -286,6 +394,14 @@ function ExtendedScoreGrid({ candidate }: { candidate: {
             </div>
           </div>
         ))}
+        {candidate.compositeScore != null && (
+          <div className="rounded border border-primary/50 bg-primary/10 p-3">
+            <div className="text-[10px] uppercase tracking-wider text-primary">Composite Score</div>
+            <div className="font-mono text-lg font-bold mt-1 text-primary">
+              {candidate.compositeScore}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -484,6 +600,10 @@ export default function CandidateDetail() {
           </Card>
 
           <ExtendedScoreGrid candidate={candidate} />
+
+          <ClimateImpactPanel candidate={candidate} />
+          
+          <EngineeringPanel candidate={candidate} />
 
           <SimulationPanel candidate={candidate} />
 
