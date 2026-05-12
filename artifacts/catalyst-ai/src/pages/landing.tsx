@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
 import { ArrowRight, Hexagon, Component, Atom, Fingerprint } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // --- Custom Components ---
 
@@ -53,6 +54,55 @@ const AbstractReaction = () => (
   </svg>
 );
 
+// Indian Flag / Abstract Molecule Animation for Footer
+const FlagMoleculeAnimation = () => (
+  <svg viewBox="0 0 400 400" className="w-64 h-64 opacity-80 mix-blend-screen" fill="none" strokeWidth="2" strokeLinejoin="round">
+    <defs>
+      <filter id="soft-glow">
+        <feGaussianBlur stdDeviation="8" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+    
+    {/* Saffron Path */}
+    <motion.path 
+      d="M 100 150 C 200 50, 300 250, 400 150" 
+      stroke="#FF9933" 
+      strokeWidth="4"
+      filter="url(#soft-glow)"
+      initial={{ pathLength: 0, opacity: 0 }}
+      animate={{ pathLength: 1, opacity: 0.9 }}
+      transition={{ duration: 4, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }}
+    />
+    {/* White/Ashoka Chakra Path */}
+    <motion.path 
+      d="M 50 200 C 150 100, 250 300, 350 200" 
+      stroke="#000080" 
+      strokeWidth="2"
+      strokeDasharray="4 4"
+      filter="url(#soft-glow)"
+      initial={{ pathLength: 0, opacity: 0 }}
+      animate={{ pathLength: 1, opacity: 0.6 }}
+      transition={{ duration: 5, ease: "easeInOut", repeat: Infinity, repeatType: "mirror", delay: 0.5 }}
+    />
+    {/* Green Path */}
+    <motion.path 
+      d="M 100 250 C 200 150, 300 350, 400 250" 
+      stroke="#138808" 
+      strokeWidth="4"
+      filter="url(#soft-glow)"
+      initial={{ pathLength: 0, opacity: 0 }}
+      animate={{ pathLength: 1, opacity: 0.9 }}
+      transition={{ duration: 4, ease: "easeInOut", repeat: Infinity, repeatType: "mirror", delay: 1 }}
+    />
+
+    {/* Nodes mapping to the colors */}
+    <motion.circle cx="200" cy="150" r="12" fill="#FF9933" animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} />
+    <motion.circle cx="200" cy="200" r="16" fill="#FFFFFF" stroke="#000080" strokeWidth="3" animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "200px 200px" }} />
+    <motion.circle cx="200" cy="250" r="12" fill="#138808" animate={{ y: [0, 10, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} />
+  </svg>
+);
+
 const fadeUp = {
   hidden: { opacity: 0, y: 80, filter: "blur(20px)", scale: 0.85 },
   visible: (i: number) => ({
@@ -62,6 +112,65 @@ const fadeUp = {
     filter: "blur(0px)",
     transition: { delay: i * 0.15, duration: 1.4, ease: [0.16, 1, 0.3, 1] },
   }),
+};
+
+// Animated Letter Component
+const AnimatedTitle = ({ text, className }: { text: string; className: string }) => {
+  const letters = Array.from(text);
+  
+  const container = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.2 * i },
+    }),
+  };
+
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      filter: "blur(0px)",
+      transition: { type: "spring", damping: 12, stiffness: 200 },
+    },
+    hidden: {
+      opacity: 0,
+      y: 40,
+      scale: 0.8,
+      rotateX: 90,
+      filter: "blur(10px)",
+      transition: { type: "spring", damping: 12, stiffness: 200 },
+    },
+  };
+
+  return (
+    <motion.span
+      className={cn("inline-block", className)}
+      variants={container as any}
+      initial="hidden"
+      animate="visible"
+      custom={1}
+    >
+      {letters.map((letter, index) => (
+        <motion.span
+          variants={child as any}
+          key={index}
+          className="inline-block"
+          style={{ whiteSpace: letter === " " ? "pre" : "normal" }}
+          whileHover={{ 
+            scale: 1.2, 
+            color: "#d946ef", 
+            textShadow: "0 0 20px rgba(217,70,239,0.8)",
+            transition: { duration: 0.2 } 
+          }}
+        >
+          {letter}
+        </motion.span>
+      ))}
+    </motion.span>
+  );
 };
 
 export default function LandingPage() {
@@ -232,8 +341,8 @@ export default function LandingPage() {
             {/* Header Block - spans 8 cols */}
             <div className="md:col-span-8 flex flex-col justify-center px-4 md:px-12">
               <h2 className="text-5xl md:text-7xl font-serif font-black tracking-tight leading-[1.05]">
-                Convergence of <br />
-                <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">biology & computation.</span>
+                Solving the <br />
+                <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">iteration bottleneck.</span>
               </h2>
             </div>
 
@@ -248,8 +357,8 @@ export default function LandingPage() {
                   <Atom className="w-10 h-10 text-fuchsia-400" />
                 </div>
                 <div className="mt-12">
-                  <h3 className="text-4xl font-black font-serif mb-6 text-white drop-shadow-md">Generative Chemistry</h3>
-                  <p className="text-white/50 font-sans font-medium text-xl leading-relaxed">Agentic frameworks exploring unmapped chemical space for sustainable CO₂ reduction and biofuel synthesis.</p>
+                  <h3 className="text-4xl font-black font-serif mb-6 text-white drop-shadow-md">Chemical Catalysis</h3>
+                  <p className="text-white/50 font-sans font-medium text-xl leading-relaxed">Generative AI proposes novel catalysts. Predictive models rank them by activity, selectivity, and stability.</p>
                 </div>
               </div>
             </motion.div>
@@ -262,8 +371,8 @@ export default function LandingPage() {
               <div className="absolute inset-0 opacity-10 group-hover:opacity-30 transition-opacity duration-1000" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
               <div className="relative z-10 w-full flex flex-col md:flex-row justify-between items-end gap-10">
                 <div className="max-w-2xl">
-                  <h3 className="text-4xl font-black font-serif mb-6 text-white drop-shadow-md">Pathway Architecture</h3>
-                  <p className="text-white/50 font-sans font-medium text-xl leading-relaxed">Designing complex enzyme cascades using large language models fine-tuned on profound metabolic databases.</p>
+                  <h3 className="text-4xl font-black font-serif mb-6 text-white drop-shadow-md">Synthetic Biology</h3>
+                  <p className="text-white/50 font-sans font-medium text-xl leading-relaxed">Design enzyme cocktails and microbial pathways to convert ethanol to petroleum-grade hydrocarbons with optimized flux.</p>
                 </div>
                 <div className="w-20 h-20 rounded-[1.5rem_0.5rem_1.5rem_0.5rem] bg-indigo-500 text-white flex items-center justify-center shadow-[0_0_40px_rgba(99,102,241,0.6)] group-hover:scale-110 group-hover:rotate-0 -rotate-45 transition-all duration-700 ease-[0.22,1,0.36,1] cursor-pointer">
                   <ArrowRight className="w-8 h-8" />
@@ -275,11 +384,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-16 border-t border-white/5 bg-[#0A0815] text-center">
-        <p className="text-white/30 font-mono text-xs tracking-[0.3em] uppercase font-bold">
-          Engineered for <span className="text-fuchsia-500/80">GPS Renewables OpenEnv Hackathon 2026</span>
-        </p>
+      {/* Enhanced Footer */}
+      <footer className="relative pt-24 pb-16 border-t border-white/10 bg-[#0A0815] overflow-hidden">
+        <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+          <FlagMoleculeAnimation />
+        </div>
+        <div className="relative z-10 text-center flex flex-col items-center">
+          <div className="mb-8 w-16 h-16 rounded-[1rem_0.5rem_1rem_0.5rem] bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-[2px] shadow-[0_10px_30px_rgba(99,102,241,0.2)]">
+            <div className="w-full h-full rounded-[calc(1rem-2px)_calc(0.5rem-2px)_calc(1rem-2px)_calc(0.5rem-2px)] bg-[#110F1A] flex items-center justify-center">
+              <Atom className="w-8 h-8 text-indigo-400" />
+            </div>
+          </div>
+          <h4 className="text-2xl font-serif font-black text-white mb-4">BioForgeBharat</h4>
+          <p className="text-white/50 font-medium max-w-md mx-auto mb-10">
+            Pioneering the future of molecular discovery through artificial intelligence and computational chemistry.
+          </p>
+          <div className="w-full h-px bg-white/5 my-10 max-w-4xl mx-auto" />
+          <p className="text-white/40 font-mono text-xs tracking-[0.3em] uppercase font-bold">
+            <span className="text-white/80">Made for India</span> · GPS Renewables OpenEnv Hackathon 2026
+          </p>
+        </div>
       </footer>
     </div>
   );
