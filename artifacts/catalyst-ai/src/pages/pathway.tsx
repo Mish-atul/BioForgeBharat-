@@ -1,8 +1,18 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dna, Zap, ChevronRight, Info, TrendingUp, Beaker, Leaf } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+// --- Glass Card Component ---
+const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-3xl border border-white/10 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+      {children}
+    </div>
+  </div>
+);
 
 interface PathwayNode {
   id: string;
@@ -44,13 +54,13 @@ const NODES: PathwayNode[] = [
 ];
 
 const EDGES: PathwayEdge[] = [
-  { from: "glucose", to: "g6p", enzyme: "HXK1/GLK1", flux: 92, geneTarget: "HXK2Δ", color: "#00cccc" },
-  { from: "g6p", to: "pyruvate", enzyme: "Glycolysis", flux: 88, color: "#00cccc" },
-  { from: "pyruvate", to: "acetaldehyde", enzyme: "PDC1/PDC5/PDC6", flux: 76, geneTarget: "PDC↑", color: "#00e673" },
-  { from: "acetaldehyde", to: "ethanol", enzyme: "ADH1/ADH2", flux: 74, geneTarget: "ADH1↑ ADH2Δ", color: "#00e673" },
+  { from: "glucose", to: "g6p", enzyme: "HXK1/GLK1", flux: 92, geneTarget: "HXK2Δ", color: "#06b6d4" },
+  { from: "g6p", to: "pyruvate", enzyme: "Glycolysis", flux: 88, color: "#06b6d4" },
+  { from: "pyruvate", to: "acetaldehyde", enzyme: "PDC1/PDC5/PDC6", flux: 76, geneTarget: "PDC↑", color: "#d946ef" },
+  { from: "acetaldehyde", to: "ethanol", enzyme: "ADH1/ADH2", flux: 74, geneTarget: "ADH1↑ ADH2Δ", color: "#d946ef" },
   { from: "pyruvate", to: "co2", enzyme: "PDC (decarbox.)", flux: 76, color: "#6b7280" },
-  { from: "pyruvate", to: "acetylcoa", enzyme: "PDH complex", flux: 12, color: "#a78bfa" },
-  { from: "acetylcoa", to: "biomass", enzyme: "TCA / Anabolic", flux: 12, color: "#a78bfa" },
+  { from: "pyruvate", to: "acetylcoa", enzyme: "PDH complex", flux: 12, color: "#f97316" },
+  { from: "acetylcoa", to: "biomass", enzyme: "TCA / Anabolic", flux: 12, color: "#f97316" },
 ];
 
 const ENZYME_DETAILS: Record<string, EnzymeDetail> = {
@@ -84,10 +94,10 @@ const ENZYME_DETAILS: Record<string, EnzymeDetail> = {
 };
 
 const NODE_COLORS: Record<PathwayNode["type"], { fill: string; stroke: string; text: string }> = {
-  substrate: { fill: "rgba(0, 204, 204, 0.15)", stroke: "#00cccc", text: "#00cccc" },
-  intermediate: { fill: "rgba(148, 163, 184, 0.1)", stroke: "#64748b", text: "#94a3b8" },
-  product: { fill: "rgba(0, 230, 115, 0.2)", stroke: "#00e673", text: "#00e673" },
-  byproduct: { fill: "rgba(107, 114, 128, 0.1)", stroke: "#6b7280", text: "#6b7280" },
+  substrate: { fill: "rgba(6, 182, 212, 0.15)", stroke: "#06b6d4", text: "#06b6d4" },
+  intermediate: { fill: "rgba(148, 163, 184, 0.1)", stroke: "#64748b", text: "#e2e8f0" },
+  product: { fill: "rgba(217, 70, 239, 0.2)", stroke: "#d946ef", text: "#f0abfc" },
+  byproduct: { fill: "rgba(107, 114, 128, 0.1)", stroke: "#6b7280", text: "#9ca3af" },
 };
 
 const STRAINS = [
@@ -129,393 +139,260 @@ export default function Pathway() {
   const enzymeDetail = selectedEnzyme ? ENZYME_DETAILS[selectedEnzyme] : null;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
+    <div className="space-y-10 animate-in fade-in duration-500 pb-20">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-end gap-6 flex-wrap">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Dna className="w-6 h-6 text-accent" />
-            <Badge variant="outline" className="text-xs font-mono border-accent/50 text-accent">
-              Synthetic Biology
-            </Badge>
-            <Badge variant="outline" className="text-xs font-mono border-primary/50 text-primary">
-              Direction 2
-            </Badge>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/30 text-xs font-bold tracking-[0.25em] uppercase mb-4 shadow-[0_0_30px_rgba(217,70,239,0.2)]">
+            <Dna className="w-4 h-4 animate-spin-slow" />
+            Synthetic Biology
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Metabolic Pathway Explorer
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Interactive flux map for <span className="text-accent font-medium">Biomass Ethanol Fermentation</span> — S. cerevisiae engineering for bioethanol production.
+          <h1 className="text-5xl font-serif font-black tracking-tight text-white mb-2 drop-shadow-lg">Pathway Explorer</h1>
+          <p className="text-lg text-white/60 max-w-2xl font-medium">
+            Interactive flux map for <span className="text-fuchsia-400 font-bold">Biomass Ethanol Fermentation</span>.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Pathway SVG */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Zap className="w-4 h-4 text-primary" />
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, type: "spring" }}>
+        <GlassCard>
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-fuchsia-600/10 to-transparent blur-[120px] rounded-full pointer-events-none" />
+          <h2 className="text-2xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+            <Zap className="w-6 h-6 text-fuchsia-400" />
             Metabolic Flux Diagram
-            <span className="ml-auto text-xs font-normal normal-case">Click an arrow to inspect enzyme details</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <svg
-            viewBox="0 0 680 370"
-            className="w-full"
-            style={{ minHeight: 240 }}
-          >
-            <defs>
-              <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" fill="#00cccc" />
-              </marker>
-              <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" fill="#00e673" />
-              </marker>
-              <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" fill="#6b7280" />
-              </marker>
-              <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" fill="#a78bfa" />
-              </marker>
-              <filter id="node-glow">
-                <feGaussianBlur stdDeviation="2.5" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-            </defs>
+            <span className="ml-auto text-xs font-sans font-medium text-white/40 uppercase tracking-widest">Click an arrow to inspect</span>
+          </h2>
+          <div className="relative z-10 bg-black/40 rounded-3xl border border-white/5 p-4 overflow-hidden">
+            <svg viewBox="0 0 680 370" className="w-full h-auto drop-shadow-2xl">
+              <defs>
+                <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4" />
+                </marker>
+                <marker id="arrow-pink" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#d946ef" />
+                </marker>
+                <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#6b7280" />
+                </marker>
+                <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#f97316" />
+                </marker>
+                <filter id="node-glow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
 
-            {/* Edges */}
-            {EDGES.map((edge) => {
-              const fromNode = getNodeById(edge.from);
-              const toNode = getNodeById(edge.to);
-              if (!fromNode || !toNode) return null;
-              const edgeId = `${edge.from}-${edge.to}`;
-              const isSelected = selectedEdge === edgeId;
-              const color = edge.color ?? "#00cccc";
-              const markerColor = color === "#00cccc" ? "arrow-cyan" : color === "#00e673" ? "arrow-green" : color === "#a78bfa" ? "arrow-purple" : "arrow-gray";
+              {/* Edges */}
+              {EDGES.map((edge) => {
+                const fromNode = getNodeById(edge.from);
+                const toNode = getNodeById(edge.to);
+                if (!fromNode || !toNode) return null;
+                const edgeId = `${edge.from}-${edge.to}`;
+                const isSelected = selectedEdge === edgeId;
+                const color = edge.color ?? "#06b6d4";
+                const markerColor = color === "#06b6d4" ? "arrow-cyan" : color === "#d946ef" ? "arrow-pink" : color === "#f97316" ? "arrow-orange" : "arrow-gray";
 
-              const dx = toNode.x - fromNode.x;
-              const dy = toNode.y - fromNode.y;
-              const len = Math.sqrt(dx * dx + dy * dy);
-              const r = 32;
-              const sx = fromNode.x + (dx / len) * r;
-              const sy = fromNode.y + (dy / len) * r;
-              const ex = toNode.x - (dx / len) * (r + 6);
-              const ey = toNode.y - (dy / len) * (r + 6);
-              const mx = (sx + ex) / 2;
-              const my = (sy + ey) / 2;
+                const dx = toNode.x - fromNode.x;
+                const dy = toNode.y - fromNode.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const r = 36;
+                const sx = fromNode.x + (dx / len) * r;
+                const sy = fromNode.y + (dy / len) * r;
+                const ex = toNode.x - (dx / len) * (r + 8);
+                const ey = toNode.y - (dy / len) * (r + 8);
+                const mx = (sx + ex) / 2;
+                const my = (sy + ey) / 2;
 
-              return (
-                <g
-                  key={edgeId}
-                  onClick={() => setSelectedEdge(isSelected ? null : edgeId)}
-                  className="cursor-pointer"
-                >
-                  <line
-                    x1={sx} y1={sy} x2={ex} y2={ey}
-                    stroke={color}
-                    strokeWidth={isSelected ? 3 : Math.max(1.5, edge.flux / 30)}
-                    strokeOpacity={isSelected ? 1 : 0.65}
-                    markerEnd={`url(#${markerColor})`}
-                  />
-                  {isSelected && (
+                return (
+                  <g key={edgeId} onClick={() => setSelectedEdge(isSelected ? null : edgeId)} className="cursor-pointer group">
                     <line
                       x1={sx} y1={sy} x2={ex} y2={ey}
                       stroke={color}
-                      strokeWidth={8}
-                      strokeOpacity={0.15}
+                      strokeWidth={isSelected ? 4 : Math.max(1.5, edge.flux / 25)}
+                      strokeOpacity={isSelected ? 1 : 0.6}
+                      markerEnd={`url(#${markerColor})`}
+                      className="transition-all duration-300"
                     />
-                  )}
-                  <text
-                    x={mx}
-                    y={my - 7}
-                    textAnchor="middle"
-                    fill={color}
-                    fontSize="8"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                  >
-                    {edge.flux}%
-                  </text>
-                  {edge.geneTarget && (
-                    <text
-                      x={mx}
-                      y={my + 5}
-                      textAnchor="middle"
-                      fill={color}
-                      fontSize="7"
-                      fontFamily="monospace"
-                      fillOpacity={0.75}
-                    >
-                      {edge.geneTarget}
+                    {/* Hover hit area */}
+                    <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="transparent" strokeWidth={20} />
+                    {isSelected && (
+                      <line x1={sx} y1={sy} x2={ex} y2={ey} stroke={color} strokeWidth={12} strokeOpacity={0.2} filter="url(#node-glow)" />
+                    )}
+                    <rect x={mx - 15} y={my - 12} width="30" height="14" fill="#050505" rx="4" opacity={0.8} />
+                    <text x={mx} y={my - 2} textAnchor="middle" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">
+                      {edge.flux}%
                     </text>
-                  )}
-                </g>
-              );
-            })}
+                    {edge.geneTarget && (
+                      <text x={mx} y={my + 10} textAnchor="middle" fill={color} fontSize="8" fontFamily="monospace" fillOpacity={0.9} fontWeight="bold">
+                        {edge.geneTarget}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
 
-            {/* Nodes */}
-            {NODES.map((node) => {
-              const colors = NODE_COLORS[node.type];
-              return (
-                <g key={node.id}>
-                  <circle
-                    cx={node.x}
-                    cy={node.y}
-                    r={32}
-                    fill={colors.fill}
-                    stroke={colors.stroke}
-                    strokeWidth={1.5}
-                    filter="url(#node-glow)"
-                  />
-                  <text
-                    x={node.x}
-                    y={node.y - 4}
-                    textAnchor="middle"
-                    fill={colors.text}
-                    fontSize="8.5"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                  >
-                    {node.label}
-                  </text>
-                  {node.sublabel && (
-                    <text
-                      x={node.x}
-                      y={node.y + 8}
-                      textAnchor="middle"
-                      fill={colors.text}
-                      fontSize="6.5"
-                      fontFamily="monospace"
-                      fillOpacity={0.7}
-                    >
-                      {node.sublabel}
+              {/* Nodes */}
+              {NODES.map((node) => {
+                const colors = NODE_COLORS[node.type];
+                return (
+                  <g key={node.id} className="hover:-translate-y-1 transition-transform duration-300 cursor-pointer">
+                    <circle cx={node.x} cy={node.y} r={34} fill={colors.fill} stroke={colors.stroke} strokeWidth={2} filter="url(#node-glow)" />
+                    <text x={node.x} y={node.y - 2} textAnchor="middle" fill={colors.text} fontSize="10" fontFamily="sans-serif" fontWeight="bold">
+                      {node.label}
                     </text>
-                  )}
-                </g>
-              );
-            })}
+                    {node.sublabel && (
+                      <text x={node.x} y={node.y + 10} textAnchor="middle" fill={colors.text} fontSize="7" fontFamily="sans-serif" fillOpacity={0.8} fontWeight="bold">
+                        {node.sublabel}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
 
-            {/* Legend */}
-            <g transform="translate(10, 330)">
-              {[
-                { color: "#00cccc", label: "Main glycolytic flux" },
-                { color: "#00e673", label: "Ethanol production" },
-                { color: "#a78bfa", label: "TCA / biomass" },
-                { color: "#6b7280", label: "Byproducts" },
-              ].map((item, i) => (
-                <g key={i} transform={`translate(${i * 160}, 0)`}>
-                  <line x1={0} y1={5} x2={20} y2={5} stroke={item.color} strokeWidth={2} />
-                  <text x={24} y={9} fill={item.color} fontSize="8" fontFamily="monospace">{item.label}</text>
-                </g>
-              ))}
-            </g>
-          </svg>
-        </CardContent>
-      </Card>
+              {/* Legend */}
+              <g transform="translate(20, 340)">
+                {[
+                  { color: "#06b6d4", label: "Glycolytic flux" },
+                  { color: "#d946ef", label: "Ethanol" },
+                  { color: "#f97316", label: "TCA/Biomass" },
+                  { color: "#6b7280", label: "Byproducts" },
+                ].map((item, i) => (
+                  <g key={i} transform={`translate(${i * 140}, 0)`}>
+                    <rect x={0} y={0} width="12" height="12" rx="3" fill={item.color} fillOpacity={0.2} stroke={item.color} strokeWidth={2} />
+                    <text x={20} y={9} fill="white" fontSize="9" fontFamily="sans-serif" fontWeight="bold" opacity={0.7}>{item.label}</text>
+                  </g>
+                ))}
+              </g>
+            </svg>
+          </div>
+        </GlassCard>
+      </motion.div>
 
       {/* Enzyme Detail Panel */}
-      {enzymeDetail && (
-        <Card className="bg-card border-primary/30 shadow-md shadow-primary/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-primary uppercase tracking-wider flex items-center gap-2">
-              <Info className="w-4 h-4" />
-              Enzyme Detail — {enzymeDetail.name}
-              <Badge
-                variant="outline"
-                className={`ml-auto text-xs font-mono ${
-                  enzymeDetail.status === "engineered"
-                    ? "border-primary/50 text-primary"
-                    : enzymeDetail.status === "native"
-                    ? "border-accent/50 text-accent"
-                    : "border-chart-3/50 text-chart-3"
-                }`}
-              >
-                {enzymeDetail.status}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Gene</div>
-                <div className="font-mono text-sm text-foreground">{enzymeDetail.gene}</div>
+      <AnimatePresence>
+        {enzymeDetail && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+            <GlassCard className="border-fuchsia-500/30">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-2xl bg-fuchsia-500/20 border border-fuchsia-500/40 flex items-center justify-center">
+                  <Info className="w-5 h-5 text-fuchsia-400" />
+                </div>
+                <h3 className="text-2xl font-serif font-bold text-white">Enzyme Detail — {enzymeDetail.name}</h3>
+                <Badge variant="outline" className="ml-auto bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30 text-xs tracking-widest uppercase font-bold py-1 px-3 rounded-full">
+                  {enzymeDetail.status}
+                </Badge>
               </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">k_cat</div>
-                <div className="font-mono text-sm text-accent">{enzymeDetail.kcat}</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Gene</div>
+                  <div className="font-mono text-sm text-white font-bold">{enzymeDetail.gene}</div>
+                </div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">k_cat</div>
+                  <div className="font-mono text-sm text-fuchsia-400 font-bold">{enzymeDetail.kcat}</div>
+                </div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Km</div>
+                  <div className="font-mono text-sm text-cyan-400 font-bold">{enzymeDetail.km}</div>
+                </div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Organism</div>
+                  <div className="font-sans text-sm text-white/70 italic">{enzymeDetail.organism}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Km</div>
-                <div className="font-mono text-sm text-primary">{enzymeDetail.km}</div>
+              <div className="p-4 rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/5">
+                <div className="text-[10px] text-fuchsia-400 uppercase tracking-widest mb-2 font-bold">Engineering Strategy</div>
+                <p className="text-sm font-medium text-white/90 leading-relaxed">{enzymeDetail.improvement}</p>
               </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Organism</div>
-                <div className="font-mono text-sm italic text-muted-foreground">{enzymeDetail.organism}</div>
-              </div>
-            </div>
-            <div className="mt-4 p-3 rounded border border-accent/20 bg-accent/5">
-              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Engineering Strategy</div>
-              <p className="text-sm text-foreground/90">{enzymeDetail.improvement}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Engineered Strains */}
-      <div>
-        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Leaf className="w-5 h-5 text-accent" />
-          Engineered Strain Library
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {STRAINS.map((strain, i) => (
-            <Card
-              key={i}
-              onClick={() => setSelectedStrain(i)}
-              className={`bg-card border-border cursor-pointer transition-all hover:-translate-y-0.5 duration-300 ${
-                selectedStrain === i ? "border-primary/60 shadow-md shadow-primary/10" : ""
-              }`}
-              data-testid={`card-strain-${i}`}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="font-mono font-bold text-sm text-foreground">{strain.name}</div>
-                  <Badge
-                    variant="outline"
-                    className={`text-xs flex-shrink-0 ml-2 ${
-                      strain.status === "validated"
-                        ? "border-accent/50 text-accent"
-                        : "border-chart-4/50 text-chart-4"
-                    }`}
-                  >
-                    {strain.status}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-3">{strain.description}</p>
-                <div className="flex gap-1 flex-wrap mb-3">
-                  {strain.tags.map((tag) => (
-                    <span key={tag} className="text-xs font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Ethanol yield</span>
-                      <span className="font-mono text-accent">{strain.ethanol}%</span>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        {/* Engineered Strains */}
+        <div className="xl:col-span-2 space-y-6">
+          <h2 className="text-3xl font-serif font-bold flex items-center gap-3">
+            <Leaf className="w-8 h-8 text-cyan-400" />
+            Engineered Strain Library
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {STRAINS.map((strain, i) => (
+              <motion.div key={i} whileHover={{ y: -5 }} onClick={() => setSelectedStrain(i)}>
+                <GlassCard className={selectedStrain === i ? "border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.2)]" : "cursor-pointer"}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="font-serif font-bold text-xl text-white">{strain.name}</div>
+                    <Badge variant="outline" className={`text-[10px] uppercase tracking-widest font-bold border ${strain.status === "validated" ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10" : "text-orange-400 border-orange-500/30 bg-orange-500/10"}`}>
+                      {strain.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-white/60 leading-relaxed mb-6 min-h-[60px]">{strain.description}</p>
+                  <div className="flex gap-2 flex-wrap mb-6">
+                    {strain.tags.map((tag) => (
+                      <span key={tag} className="text-[10px] font-mono font-bold px-3 py-1 rounded-full bg-white/5 text-white/80 border border-white/10">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
+                        <span>Ethanol</span>
+                        <span className="font-mono text-fuchsia-400">{strain.ethanol}%</span>
+                      </div>
+                      <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                        <div className="h-full bg-gradient-to-r from-fuchsia-600 to-fuchsia-400 rounded-full shadow-[0_0_10px_rgba(217,70,239,0.5)]" style={{ width: `${strain.ethanol}%` }} />
+                      </div>
                     </div>
-                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-accent rounded-full"
-                        style={{ width: `${strain.ethanol}%` }}
-                      />
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
+                        <span>Biomass</span>
+                        <span className="font-mono text-white/50">{strain.biomass}%</span>
+                      </div>
+                      <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                        <div className="h-full bg-white/30 rounded-full" style={{ width: `${strain.biomass * 4}%` }} />
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Biomass yield</span>
-                      <span className="font-mono text-muted-foreground">{strain.biomass}%</span>
-                    </div>
-                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-muted-foreground/50 rounded-full"
-                        style={{ width: `${strain.biomass * 4}%` }}
-                      />
-                    </div>
-                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* FBA Summary */}
+        <div className="space-y-6">
+          <h2 className="text-3xl font-serif font-bold flex items-center gap-3">
+            <TrendingUp className="w-8 h-8 text-orange-400" />
+            Flux Analysis
+          </h2>
+          <GlassCard className="h-[calc(100%-3rem)] flex flex-col">
+            <h3 className="text-lg font-bold text-white mb-6 bg-white/5 p-3 rounded-xl border border-white/10 text-center font-mono">
+              {STRAINS[selectedStrain].name}
+            </h3>
+            <div className="grid grid-cols-2 gap-4 mb-8 flex-1">
+              {[
+                { label: "EtOH Yield", value: `${STRAINS[selectedStrain].ethanol}%`, note: "max 95.1%", color: "text-fuchsia-400" },
+                { label: "Biomass", value: `${STRAINS[selectedStrain].biomass}%`, note: "gDCW/gGlc", color: "text-white/60" },
+                { label: "Glc Uptake", value: "2.1", note: "mmol/gDCW·h", color: "text-cyan-400" },
+                { label: "O₂ Req.", value: "Anaer.", note: "mode", color: "text-orange-400" },
+              ].map((item) => (
+                <div key={item.label} className="flex flex-col justify-center p-4 rounded-2xl border border-white/5 bg-black/40 text-center shadow-inner">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-2">{item.label}</div>
+                  <div className={`text-2xl font-mono font-black ${item.color}`}>{item.value}</div>
+                  <div className="text-[10px] text-white/30 mt-1">{item.note}</div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              ))}
+            </div>
+            <div className="mt-auto">
+              <Button className="w-full bg-gradient-to-r from-orange-600 to-rose-500 text-white rounded-xl py-6 font-bold shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all">
+                Export SBML Model
+              </Button>
+            </div>
+          </GlassCard>
         </div>
       </div>
-
-      {/* Flux Balance Analysis Summary */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            Flux Balance Analysis — {STRAINS[selectedStrain].name}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Ethanol Yield", value: `${STRAINS[selectedStrain].ethanol}%`, note: "theoretical max 95.1%", color: "text-accent" },
-              { label: "Biomass Yield", value: `${STRAINS[selectedStrain].biomass}%`, note: "gDCW/gGlucose", color: "text-muted-foreground" },
-              { label: "Glucose Uptake", value: "2.1 mmol/gDCW·h", note: "specific rate", color: "text-primary" },
-              { label: "O₂ Req.", value: "Anaerobic", note: "fermentative mode", color: "text-chart-3" },
-            ].map((item) => (
-              <div key={item.label} className="space-y-1 p-3 rounded border border-border bg-background">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider">{item.label}</div>
-                <div className={`text-lg font-mono font-bold ${item.color}`}>{item.value}</div>
-                <div className="text-xs text-muted-foreground">{item.note}</div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 p-4 rounded border border-border bg-background">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Pathway Engineering Notes</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div className="flex items-start gap-2">
-                <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-foreground/80">PDC overexpression increases pyruvate → acetaldehyde flux by 31%, reducing overflow metabolism.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <ChevronRight className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                <span className="text-foreground/80">ADH2 deletion prevents ethanol re-oxidation to acetaldehyde, improving net ethanol titer.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-foreground/80">GPD1/2 knockouts eliminate glycerol drain (~4% carbon), but require osmotic stress management.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <ChevronRight className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                <span className="text-foreground/80">HXK2 deletion relieves glucose catabolite repression, enabling efficient xylose co-utilization.</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Comparison with Direction 1 */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Beaker className="w-4 h-4 text-primary" />
-            Integrated Workflow — Synthetic Biology → Chemical Catalysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 overflow-x-auto pb-2">
-            {[
-              { step: "1", label: "Biomass Feedstock", sub: "Agricultural waste, sugarcane", color: "text-accent" },
-              { step: "→", label: "", sub: "", color: "text-muted-foreground" },
-              { step: "2", label: "Fermentation", sub: "S. cerevisiae BY4741 (engineered)", color: "text-primary" },
-              { step: "→", label: "", sub: "", color: "text-muted-foreground" },
-              { step: "3", label: "Bioethanol", sub: "74–81% yield", color: "text-accent" },
-              { step: "→", label: "", sub: "", color: "text-muted-foreground" },
-              { step: "4", label: "Catalytic Upgrade", sub: "HZSM-5 / Ni/HZSM-5 (Direction 1)", color: "text-primary" },
-              { step: "→", label: "", sub: "", color: "text-muted-foreground" },
-              { step: "5", label: "Jet Fuel (SAF)", sub: "C₈–C₁₆ hydrocarbons", color: "text-accent" },
-            ].map((item, i) => (
-              item.step === "→" ? (
-                <ChevronRight key={i} className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-              ) : (
-                <div key={i} className="flex-shrink-0 text-center p-3 rounded border border-border bg-background min-w-[120px]">
-                  <div className="text-xs font-mono text-muted-foreground mb-1">Step {item.step}</div>
-                  <div className={`text-sm font-bold ${item.color}`}>{item.label}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{item.sub}</div>
-                </div>
-              )
-            ))}
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
-            BioForgeBharat integrates both discovery directions: engineered <span className="italic">S. cerevisiae</span> strains (Direction 2) produce bioethanol from lignocellulosic biomass, which is then upgraded to sustainable aviation fuel (SAF) via AI-optimized heterogeneous catalysts (Direction 1). GPS Renewables pilot targets 10,000 L/day ethanol → 6,500 L/day jet fuel.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }

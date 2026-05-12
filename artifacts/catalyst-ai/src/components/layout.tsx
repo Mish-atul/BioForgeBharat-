@@ -37,16 +37,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#030005] text-white font-sans overflow-hidden">
+    <div className="min-h-screen flex bg-[#0F0C29] text-white font-sans overflow-hidden">
       {/* Abstract Chaotic Background for Dashboard */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_0%,#030005_100%)] z-10" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,12,41,0.8)_0%,#0F0C29_100%)] z-10" />
         <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay z-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
         
-        {/* Vibrant glowing orbs */}
-        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }} transition={{ duration: 5, repeat: Infinity }} className="absolute top-0 right-0 w-[60vw] h-[60vw] bg-fuchsia-600/20 blur-[130px] rounded-full translate-x-1/3 -translate-y-1/3" />
-        <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.25, 0.1] }} transition={{ duration: 7, repeat: Infinity, delay: 1 }} className="absolute bottom-0 left-0 w-[50vw] h-[50vw] bg-blue-600/20 blur-[120px] rounded-full -translate-x-1/3 translate-y-1/3" />
-        <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.05, 0.15, 0.05] }} transition={{ duration: 4, repeat: Infinity, delay: 2 }} className="absolute top-1/2 left-1/2 w-[40vw] h-[40vw] bg-orange-500/20 blur-[100px] rounded-full -translate-x-1/2 -translate-y-1/2" />
+        {/* Organic abstract SVG blobs */}
+        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1], rotate: [0, 90, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} className="absolute top-0 right-0 w-[60vw] h-[60vw] text-fuchsia-600/20 blur-[80px] -translate-y-1/4 translate-x-1/4">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,81.6,-46.3C91.4,-33.5,98,-18,97.5,-2.8C97,12.4,89.4,27.3,80.1,41.1C70.8,54.9,59.8,67.6,46.1,75.8C32.4,84,16.2,87.7,0.5,86.8C-15.2,85.9,-30.4,81.4,-44.5,73.5C-58.6,65.6,-71.6,54.3,-79.8,40.7C-88,27.1,-91.4,11.2,-91.5,-4.7C-91.6,-20.6,-88.4,-36.5,-79.4,-49.2C-70.4,-61.9,-55.6,-71.4,-41.2,-78.3C-26.8,-85.2,-13.4,-89.5,1.1,-91.5C15.6,-93.5,30.6,-83.6,44.7,-76.4Z" transform="translate(100 100)" /></svg>
+        </motion.div>
+        <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.25, 0.1], rotate: [0, -90, 0] }} transition={{ duration: 18, repeat: Infinity, delay: 1, ease: "linear" }} className="absolute bottom-0 left-0 w-[50vw] h-[50vw] text-blue-600/20 blur-[80px] translate-y-1/4 -translate-x-1/4">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M50.4,-72.6C64.6,-64.1,74.9,-49.1,82.1,-32.8C89.3,-16.5,92.9,1.1,88.7,17.2C84.5,33.3,72.5,47.9,58.3,58.3C44.1,68.7,27.7,74.9,10.6,78.2C-6.5,81.5,-24.3,81.9,-39.8,75.3C-55.3,68.7,-68.5,55.1,-78.2,39.1C-87.9,23.1,-94.1,4.7,-91.3,-12.3C-88.5,-29.3,-76.7,-44.9,-62.4,-53.6C-48.1,-62.3,-31.3,-64.1,-15.9,-65.4C-0.5,-66.7,13.5,-66.2,36.2,-81.1Z" transform="translate(100 100)" /></svg>
+        </motion.div>
       </div>
 
       {/* Sidebar */}

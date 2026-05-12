@@ -132,7 +132,7 @@ export default function LandingPage() {
           initial="hidden"
           animate="visible"
           variants={fadeUp as any}
-          className="text-6xl md:text-8xl lg:text-[8rem] font-black tracking-tighter leading-[1.05] max-w-6xl mx-auto drop-shadow-2xl"
+          className="text-6xl md:text-8xl lg:text-[8rem] font-serif font-black tracking-tighter leading-[1.05] max-w-6xl mx-auto drop-shadow-2xl"
         >
           Synthesize the <br className="hidden md:block" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-rose-500 to-orange-500 animate-[gradient_4s_ease_infinite] bg-[length:200%_auto]">
