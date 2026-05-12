@@ -162,25 +162,34 @@ export default function Pathway() {
             Metabolic Flux Diagram
             <span className="ml-auto text-xs font-sans font-medium text-white/40 uppercase tracking-widest">Click an arrow to inspect</span>
           </h2>
-          <div className="relative z-10 bg-black/40 rounded-3xl border border-white/5 p-4 overflow-hidden">
-            <svg viewBox="0 0 680 370" className="w-full h-auto drop-shadow-2xl">
+          <div className="relative z-10 bg-[#080310]/50 rounded-[2rem] border border-white/5 p-8 overflow-hidden shadow-[inset_0_0_80px_rgba(0,0,0,0.8)]">
+            <svg viewBox="0 0 680 370" className="w-full h-auto drop-shadow-2xl overflow-visible">
               <defs>
-                <marker id="arrow-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4" />
+                <marker id="arrow-cyan" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto-start-reverse">
+                  <path d="M0,1 L0,5 L6,3 z" fill="#06b6d4" />
                 </marker>
-                <marker id="arrow-pink" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L8,3 z" fill="#d946ef" />
+                <marker id="arrow-pink" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto-start-reverse">
+                  <path d="M0,1 L0,5 L6,3 z" fill="#d946ef" />
                 </marker>
-                <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L8,3 z" fill="#6b7280" />
+                <marker id="arrow-gray" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto-start-reverse">
+                  <path d="M0,1 L0,5 L6,3 z" fill="#6b7280" />
                 </marker>
-                <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                  <path d="M0,0 L0,6 L8,3 z" fill="#f97316" />
+                <marker id="arrow-orange" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto-start-reverse">
+                  <path d="M0,1 L0,5 L6,3 z" fill="#f97316" />
                 </marker>
-                <filter id="node-glow">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
+                <filter id="node-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="8" result="blur" />
                   <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
+                <filter id="edge-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <linearGradient id="flux-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
+                  <stop offset="50%" stopColor="currentColor" stopOpacity="1" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0.2" />
+                </linearGradient>
               </defs>
 
               {/* Edges */}
@@ -199,68 +208,111 @@ export default function Pathway() {
                 const r = 36;
                 const sx = fromNode.x + (dx / len) * r;
                 const sy = fromNode.y + (dy / len) * r;
-                const ex = toNode.x - (dx / len) * (r + 8);
-                const ey = toNode.y - (dy / len) * (r + 8);
+                const ex = toNode.x - (dx / len) * (r + 12);
+                const ey = toNode.y - (dy / len) * (r + 12);
                 const mx = (sx + ex) / 2;
                 const my = (sy + ey) / 2;
 
+                // Create a smooth curve if it's not a straight horizontal line
+                const curveOffset = Math.abs(dy) > 10 ? 40 : 0;
+                const cx1 = sx + (dx / 3);
+                const cy1 = sy - curveOffset;
+                const cx2 = ex - (dx / 3);
+                const cy2 = ey - curveOffset;
+                
+                const pathD = `M ${sx} ${sy} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${ex} ${ey}`;
+                const pMx = (sx + cx1 + cx2 + ex) / 4;
+                const pMy = (sy + cy1 + cy2 + ey) / 4;
+
                 return (
-                  <g key={edgeId} onClick={() => setSelectedEdge(isSelected ? null : edgeId)} className="cursor-pointer group">
-                    <line
-                      x1={sx} y1={sy} x2={ex} y2={ey}
+                  <g key={edgeId} onClick={() => setSelectedEdge(isSelected ? null : edgeId)} className="cursor-pointer group" style={{ color }}>
+                    {/* Base track */}
+                    <path
+                      d={pathD}
                       stroke={color}
-                      strokeWidth={isSelected ? 4 : Math.max(1.5, edge.flux / 25)}
-                      strokeOpacity={isSelected ? 1 : 0.6}
-                      markerEnd={`url(#${markerColor})`}
-                      className="transition-all duration-300"
+                      fill="none"
+                      strokeWidth={isSelected ? 5 : Math.max(2, edge.flux / 20)}
+                      strokeOpacity={0.15}
                     />
+                    
+                    {/* Glowing animated line */}
+                    <motion.path
+                      d={pathD}
+                      stroke={color}
+                      fill="none"
+                      strokeWidth={isSelected ? 4 : Math.max(1.5, edge.flux / 25)}
+                      strokeOpacity={isSelected ? 1 : 0.8}
+                      markerEnd={`url(#${markerColor})`}
+                      filter="url(#edge-glow)"
+                      initial={{ strokeDasharray: "10 20", strokeDashoffset: 100 }}
+                      animate={{ strokeDashoffset: 0 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      className={cn("transition-all duration-300", !isSelected && "group-hover:stroke-opacity-100 group-hover:stroke-width-[3px]")}
+                    />
+
                     {/* Hover hit area */}
-                    <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="transparent" strokeWidth={20} />
-                    {isSelected && (
-                      <line x1={sx} y1={sy} x2={ex} y2={ey} stroke={color} strokeWidth={12} strokeOpacity={0.2} filter="url(#node-glow)" />
-                    )}
-                    <rect x={mx - 15} y={my - 12} width="30" height="14" fill="#050505" rx="4" opacity={0.8} />
-                    <text x={mx} y={my - 2} textAnchor="middle" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">
-                      {edge.flux}%
-                    </text>
-                    {edge.geneTarget && (
-                      <text x={mx} y={my + 10} textAnchor="middle" fill={color} fontSize="8" fontFamily="monospace" fillOpacity={0.9} fontWeight="bold">
-                        {edge.geneTarget}
+                    <path d={pathD} fill="none" stroke="transparent" strokeWidth={24} />
+                    
+                    {/* Flux Label */}
+                    <g transform={`translate(${pMx}, ${pMy})`}>
+                      <rect x="-20" y="-14" width="40" height="18" fill="#0A0815" rx="6" opacity={0.9} stroke={color} strokeWidth={isSelected ? 1.5 : 0.5} strokeOpacity={0.5} filter={isSelected ? "url(#node-glow)" : ""} className="transition-all duration-300 group-hover:stroke-opacity-100" />
+                      <text x="0" y="-2" textAnchor="middle" fill={color} fontSize="10" fontFamily="'JetBrains Mono', monospace" fontWeight="900" style={{ textShadow: `0 0 10px ${color}` }}>
+                        {edge.flux}%
                       </text>
-                    )}
+                      {edge.geneTarget && (
+                        <text x="0" y="14" textAnchor="middle" fill={color} fontSize="9" fontFamily="'JetBrains Mono', monospace" fillOpacity={0.9} fontWeight="bold">
+                          {edge.geneTarget}
+                        </text>
+                      )}
+                    </g>
                   </g>
                 );
               })}
 
               {/* Nodes */}
-              {NODES.map((node) => {
+              {NODES.map((node, i) => {
                 const colors = NODE_COLORS[node.type];
                 return (
-                  <g key={node.id} className="hover:-translate-y-1 transition-transform duration-300 cursor-pointer">
-                    <circle cx={node.x} cy={node.y} r={34} fill={colors.fill} stroke={colors.stroke} strokeWidth={2} filter="url(#node-glow)" />
-                    <text x={node.x} y={node.y - 2} textAnchor="middle" fill={colors.text} fontSize="10" fontFamily="sans-serif" fontWeight="bold">
+                  <motion.g 
+                    key={node.id} 
+                    className="cursor-pointer"
+                    initial={{ y: 0 }}
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
+                    whileHover={{ scale: 1.1, zIndex: 10 }}
+                  >
+                    {/* Outer Glow */}
+                    <circle cx={node.x} cy={node.y} r={42} fill={colors.fill} opacity={0.4} filter="url(#node-glow)" />
+                    {/* Main Node */}
+                    <circle cx={node.x} cy={node.y} r={36} fill="#0A0815" stroke={colors.stroke} strokeWidth={2} className="transition-all duration-300" />
+                    {/* Inner core */}
+                    <circle cx={node.x} cy={node.y} r={30} fill={colors.fill} opacity={0.3} />
+                    
+                    <text x={node.x} y={node.y - 2} textAnchor="middle" fill="#FFFFFF" fontSize="11" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="800" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.8)" }}>
                       {node.label}
                     </text>
                     {node.sublabel && (
-                      <text x={node.x} y={node.y + 10} textAnchor="middle" fill={colors.text} fontSize="7" fontFamily="sans-serif" fillOpacity={0.8} fontWeight="bold">
+                      <text x={node.x} y={node.y + 12} textAnchor="middle" fill={colors.text} fontSize="8" fontFamily="'JetBrains Mono', monospace" fillOpacity={0.9} fontWeight="bold">
                         {node.sublabel}
                       </text>
                     )}
-                  </g>
+                  </motion.g>
                 );
               })}
 
               {/* Legend */}
               <g transform="translate(20, 340)">
+                <rect x="-10" y="-10" width="540" height="30" fill="#0A0815" fillOpacity={0.8} rx="15" stroke="rgba(255,255,255,0.05)" />
                 {[
                   { color: "#06b6d4", label: "Glycolytic flux" },
                   { color: "#d946ef", label: "Ethanol" },
                   { color: "#f97316", label: "TCA/Biomass" },
                   { color: "#6b7280", label: "Byproducts" },
                 ].map((item, i) => (
-                  <g key={i} transform={`translate(${i * 140}, 0)`}>
-                    <rect x={0} y={0} width="12" height="12" rx="3" fill={item.color} fillOpacity={0.2} stroke={item.color} strokeWidth={2} />
-                    <text x={20} y={9} fill="white" fontSize="9" fontFamily="sans-serif" fontWeight="bold" opacity={0.7}>{item.label}</text>
+                  <g key={i} transform={`translate(${10 + i * 130}, 0)`}>
+                    <circle cx="6" cy="5" r="4" fill={item.color} filter="url(#node-glow)" />
+                    <circle cx="6" cy="5" r="2" fill="#fff" />
+                    <text x="18" y="8" fill="white" fontSize="10" fontFamily="'Plus Jakarta Sans', sans-serif" fontWeight="700" opacity={0.8}>{item.label}</text>
                   </g>
                 ))}
               </g>
