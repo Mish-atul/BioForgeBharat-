@@ -25,7 +25,9 @@
 #     - typescript
 #
 # ============================================================================
-minimumReleaseAge: 1440
+# Must be 0 for Render/CI: pnpm refuses installs when a locked version is newer than this window,
+# which breaks deploys unpredictably. Supply-chain delay is relaxed for this repo only.
+minimumReleaseAge: 0
 
 minimumReleaseAgeExclude:
   # Exclude @replit scoped packages from the minimum release age check.

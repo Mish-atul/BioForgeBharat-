@@ -3,10 +3,12 @@ services:
     name: bioforgebharat-api
     env: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    buildCommand: corepack enable && corepack prepare pnpm@10.24.0 --activate && NODE_OPTIONS=--max-old-space-size=4096 pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
     startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
     healthCheckPath: /api/healthz
     envVars:
+      - key: NODE_VERSION
+        value: "20.18.1"
       - key: NODE_ENV
         value: production
       - key: PORT
