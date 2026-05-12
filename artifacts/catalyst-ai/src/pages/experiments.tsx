@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 
 // --- Glass Card Component ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
-    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-3xl border border-white/50 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-3xl border border-white/10 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
       {children}
     </div>
   </div>
@@ -33,7 +33,7 @@ function DeltaBadge({ predicted, measured }: { predicted: number; measured: numb
   const pct = (delta * 100).toFixed(1);
   if (Math.abs(delta) < 0.03) {
     return (
-      <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-slate-900/40 bg-white/30 px-2 py-0.5 rounded-full border border-white/50">
+      <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-white/40 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
         <Minus className="w-3 h-3" /> {pct}%
       </span>
     );
@@ -65,11 +65,11 @@ export default function Experiments() {
             <Network className="w-4 h-4 animate-pulse" />
             Validation
           </div>
-          <h1 className="text-5xl font-serif font-black tracking-tight text-slate-900 mb-2 drop-shadow-lg">Experiments Log</h1>
-          <p className="text-lg text-slate-900/60 max-w-xl font-medium">Experimental validation results with predicted vs. measured comparison.</p>
+          <h1 className="text-5xl font-serif font-black tracking-tight text-white mb-2 drop-shadow-lg">Experiments Log</h1>
+          <p className="text-lg text-white/60 max-w-xl font-medium">Experimental validation results with predicted vs. measured comparison.</p>
         </div>
         <Link href="/experiments/new">
-          <Button className="gap-2 bg-gradient-to-r from-orange-600 to-rose-500 text-slate-900 rounded-full px-8 py-6 font-bold shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(244,63,94,0.6)] transition-all">
+          <Button className="gap-2 bg-gradient-to-r from-orange-600 to-rose-500 text-white rounded-full px-8 py-6 font-bold shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(244,63,94,0.6)] transition-all">
             <Plus className="w-5 h-5" />
             Log Experiment
           </Button>
@@ -78,18 +78,18 @@ export default function Experiments() {
 
       {isLoading ? (
         <div className="space-y-6">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32 w-full bg-white/30 rounded-[2.5rem]" />)}
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-32 w-full bg-white/5 rounded-[2.5rem]" />)}
         </div>
       ) : !experiments || experiments.length === 0 ? (
-        <div className="p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50">
-          <div className="rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-2xl p-16 text-center border border-white/40">
+        <div className="p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10">
+          <div className="rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-2xl p-16 text-center border border-white/5">
             <FlaskConical className="w-16 h-16 mx-auto text-orange-500/50 mb-6" />
-            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">No Experiments Logged</h3>
-            <p className="text-slate-900/50 max-w-sm mx-auto">
+            <h3 className="text-2xl font-serif font-bold text-white mb-2">No Experiments Logged</h3>
+            <p className="text-white/50 max-w-sm mx-auto">
               Log your first experimental result to begin validating AI predictions.
             </p>
             <Link href="/experiments/new">
-              <Button className="mt-8 bg-orange-600 hover:bg-orange-500 text-slate-900 rounded-full px-8 py-6 font-bold shadow-lg">
+              <Button className="mt-8 bg-orange-600 hover:bg-orange-500 text-white rounded-full px-8 py-6 font-bold shadow-lg">
                 <Plus className="w-5 h-5 mr-2" /> Log First Experiment
               </Button>
             </Link>
@@ -110,44 +110,44 @@ export default function Experiments() {
                           <FlaskConical className="w-6 h-6 text-orange-400" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-black font-mono tracking-tight text-slate-900 group-hover:text-orange-300 transition-colors">
+                          <h3 className="text-2xl font-black font-mono tracking-tight text-white group-hover:text-orange-300 transition-colors">
                             {exp.candidateName}
                           </h3>
-                          <div className="text-sm font-medium text-slate-900/50 mt-1">
+                          <div className="text-sm font-medium text-white/50 mt-1">
                             by {exp.researcherName} · {new Date(exp.createdAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
-                      <Badge variant="outline" className="mt-2 bg-white/30 text-slate-900/70 border-white/50 px-3 py-1 font-mono text-[10px] tracking-widest uppercase rounded-full">
+                      <Badge variant="outline" className="mt-2 bg-white/5 text-white/70 border-white/10 px-3 py-1 font-mono text-[10px] tracking-widest uppercase rounded-full">
                         {exp.reactionName}
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 md:gap-8 bg-white/40 p-4 rounded-2xl border border-white/40 shadow-inner">
+                    <div className="grid grid-cols-3 gap-4 md:gap-8 bg-black/40 p-4 rounded-2xl border border-white/5 shadow-inner">
                       <div className="text-center">
-                        <div className="text-[10px] font-bold text-slate-900/40 uppercase tracking-widest mb-2">Activity</div>
-                        <div className="font-mono text-xl font-black text-slate-900 mb-2">
+                        <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Activity</div>
+                        <div className="font-mono text-xl font-black text-white mb-2">
                           {(exp.measuredActivity * 100).toFixed(1)}%
                         </div>
                         <div className="flex justify-center"><DeltaBadge predicted={exp.predictedActivity} measured={exp.measuredActivity} /></div>
                       </div>
-                      <div className="text-center border-l border-white/50 pl-4 md:pl-8">
-                        <div className="text-[10px] font-bold text-slate-900/40 uppercase tracking-widest mb-2">Selectivity</div>
-                        <div className="font-mono text-xl font-black text-slate-900 mb-2">
+                      <div className="text-center border-l border-white/10 pl-4 md:pl-8">
+                        <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Selectivity</div>
+                        <div className="font-mono text-xl font-black text-white mb-2">
                           {(exp.measuredSelectivity * 100).toFixed(1)}%
                         </div>
                         <div className="flex justify-center"><DeltaBadge predicted={exp.predictedSelectivity} measured={exp.measuredSelectivity} /></div>
                       </div>
-                      <div className="text-center border-l border-white/50 pl-4 md:pl-8">
-                        <div className="text-[10px] font-bold text-slate-900/40 uppercase tracking-widest mb-2">Yield</div>
+                      <div className="text-center border-l border-white/10 pl-4 md:pl-8">
+                        <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2">Yield</div>
                         <div className="font-mono text-2xl font-black text-orange-400 drop-shadow-md">
                           {(exp.measuredYield * 100).toFixed(1)}%
                         </div>
                       </div>
                     </div>
                     
-                    <div className="hidden lg:flex w-12 h-12 rounded-full bg-white/30 border border-white/50 items-center justify-center group-hover:bg-orange-500/20 group-hover:border-orange-500/40 transition-all duration-300 flex-shrink-0">
-                      <ArrowRight className="w-5 h-5 text-slate-900/50 group-hover:text-orange-400 group-hover:translate-x-1 transition-all" />
+                    <div className="hidden lg:flex w-12 h-12 rounded-full bg-white/5 border border-white/10 items-center justify-center group-hover:bg-orange-500/20 group-hover:border-orange-500/40 transition-all duration-300 flex-shrink-0">
+                      <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-orange-400 group-hover:translate-x-1 transition-all" />
                     </div>
                   </div>
                 </GlassCard>

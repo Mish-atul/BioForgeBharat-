@@ -22,8 +22,8 @@ import { cn } from "@/lib/utils";
 
 // --- Glass Card Component ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] group", className)}>
-    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-3xl border border-white/40 p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#1A1528]/80 backdrop-blur-3xl border border-white/5 p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
       {children}
     </div>
   </div>
@@ -110,7 +110,7 @@ export default function ExperimentForm() {
       {/* Header */}
       <motion.div variants={fadeUp as any} custom={0} className="flex items-start gap-6">
         <Link href="/experiments">
-          <Button variant="ghost" className="rounded-full w-12 h-12 bg-white/30 border border-white/50 hover:bg-white/10 hover:text-slate-900 transition-all shadow-lg p-0">
+          <Button variant="ghost" className="rounded-full w-12 h-12 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all shadow-lg p-0">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>
@@ -119,8 +119,8 @@ export default function ExperimentForm() {
             <FlaskConical className="w-4 h-4 animate-pulse" />
             Lab Integration
           </div>
-          <h1 className="text-4xl md:text-5xl font-serif font-black tracking-tight text-slate-900 drop-shadow-lg mb-2">Log Experiment</h1>
-          <p className="text-lg text-slate-900/50 font-medium">Record in-vitro validation results for an AI-generated candidate.</p>
+          <h1 className="text-4xl md:text-5xl font-serif font-black tracking-tight text-white drop-shadow-lg mb-2">Log Experiment</h1>
+          <p className="text-lg text-white/50 font-medium">Record in-vitro validation results for an AI-generated candidate.</p>
         </div>
       </motion.div>
 
@@ -128,7 +128,7 @@ export default function ExperimentForm() {
         <GlassCard>
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 blur-[120px] rounded-full pointer-events-none" />
           
-          <h2 className="text-2xl font-serif font-bold text-slate-900 mb-8 relative z-10 flex items-center gap-3">
+          <h2 className="text-2xl font-serif font-bold text-white mb-8 relative z-10 flex items-center gap-3">
             <Network className="w-6 h-6 text-orange-400" />
             Experimental Results
           </h2>
@@ -137,13 +137,13 @@ export default function ExperimentForm() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/40 p-6 rounded-3xl border border-white/40 shadow-inner">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-black/40 p-6 rounded-3xl border border-white/5 shadow-inner">
                   <FormField
                     control={form.control}
                     name="reactionId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Target Reaction</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Target Reaction</FormLabel>
                         <Select
                           onValueChange={(val) => {
                             field.onChange(val);
@@ -153,11 +153,11 @@ export default function ExperimentForm() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="bg-white/30 border-white/50 h-14 rounded-2xl focus:ring-orange-500 text-slate-900 font-medium">
+                            <SelectTrigger className="bg-white/5 border-white/10 h-14 rounded-2xl focus:ring-orange-500 text-white font-medium">
                               <SelectValue placeholder="Select reaction..." />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="bg-[#0F0C29] border-white/50 text-slate-900 rounded-2xl">
+                          <SelectContent className="bg-[#0F0C29] border-white/10 text-white rounded-2xl">
                             {reactions?.map((r: Reaction) => (
                               <SelectItem key={r.id} value={String(r.id)} className="focus:bg-white/10">{r.name}</SelectItem>
                             ))}
@@ -173,18 +173,18 @@ export default function ExperimentForm() {
                     name="candidateId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Candidate Model</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Candidate Model</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
                           disabled={!selectedReactionId || !candidates?.length}
                         >
                           <FormControl>
-                            <SelectTrigger className="bg-white/30 border-white/50 h-14 rounded-2xl focus:ring-orange-500 text-slate-900 font-medium">
+                            <SelectTrigger className="bg-white/5 border-white/10 h-14 rounded-2xl focus:ring-orange-500 text-white font-medium">
                               <SelectValue placeholder={selectedReactionId ? "Select candidate..." : "Select reaction first"} />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="bg-[#0F0C29] border-white/50 text-slate-900 rounded-2xl">
+                          <SelectContent className="bg-[#0F0C29] border-white/10 text-white rounded-2xl">
                             {candidates?.map((c: Candidate) => (
                               <SelectItem key={c.id} value={String(c.id)} className="focus:bg-white/10">{c.name}</SelectItem>
                             ))}
@@ -196,15 +196,15 @@ export default function ExperimentForm() {
                   />
                 </div>
 
-                <div className="bg-white/40 p-6 rounded-3xl border border-white/40 shadow-inner">
+                <div className="bg-black/40 p-6 rounded-3xl border border-white/5 shadow-inner">
                   <FormField
                     control={form.control}
                     name="researcherName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Lead Researcher</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Lead Researcher</FormLabel>
                         <FormControl>
-                          <Input className="bg-white/30 border-white/50 h-14 rounded-2xl focus-visible:ring-orange-500 text-slate-900 font-medium text-lg px-4" placeholder="e.g., Dr. Priya Sharma" {...field} />
+                          <Input className="bg-white/5 border-white/10 h-14 rounded-2xl focus-visible:ring-orange-500 text-white font-medium text-lg px-4" placeholder="e.g., Dr. Priya Sharma" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -212,13 +212,13 @@ export default function ExperimentForm() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white/40 p-6 rounded-3xl border border-white/40 shadow-inner">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-black/40 p-6 rounded-3xl border border-white/5 shadow-inner">
                   <FormField
                     control={form.control}
                     name="measuredActivity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Activity (0–1)</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Activity (0–1)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -226,7 +226,7 @@ export default function ExperimentForm() {
                             min="0"
                             max="1"
                             placeholder="0.85"
-                            className="font-mono bg-white/30 border-white/50 h-14 rounded-2xl focus-visible:ring-orange-500 text-cyan-400 font-bold text-xl px-4 text-center"
+                            className="font-mono bg-white/5 border-white/10 h-14 rounded-2xl focus-visible:ring-orange-500 text-cyan-400 font-bold text-xl px-4 text-center"
                             {...field}
                           />
                         </FormControl>
@@ -239,7 +239,7 @@ export default function ExperimentForm() {
                     name="measuredSelectivity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Selectivity (0–1)</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Selectivity (0–1)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -247,7 +247,7 @@ export default function ExperimentForm() {
                             min="0"
                             max="1"
                             placeholder="0.78"
-                            className="font-mono bg-white/30 border-white/50 h-14 rounded-2xl focus-visible:ring-orange-500 text-fuchsia-400 font-bold text-xl px-4 text-center"
+                            className="font-mono bg-white/5 border-white/10 h-14 rounded-2xl focus-visible:ring-orange-500 text-fuchsia-400 font-bold text-xl px-4 text-center"
                             {...field}
                           />
                         </FormControl>
@@ -260,7 +260,7 @@ export default function ExperimentForm() {
                     name="measuredYield"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Yield (0–1)</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Yield (0–1)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -268,7 +268,7 @@ export default function ExperimentForm() {
                             min="0"
                             max="1"
                             placeholder="0.72"
-                            className="font-mono bg-white/30 border-white/50 h-14 rounded-2xl focus-visible:ring-orange-500 text-orange-400 font-bold text-xl px-4 text-center"
+                            className="font-mono bg-white/5 border-white/10 h-14 rounded-2xl focus-visible:ring-orange-500 text-orange-400 font-bold text-xl px-4 text-center"
                             {...field}
                           />
                         </FormControl>
@@ -278,17 +278,17 @@ export default function ExperimentForm() {
                   />
                 </div>
 
-                <div className="bg-white/40 p-6 rounded-3xl border border-white/40 shadow-inner">
+                <div className="bg-black/40 p-6 rounded-3xl border border-white/5 shadow-inner">
                   <FormField
                     control={form.control}
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/60 font-bold uppercase tracking-widest text-[10px]">Observations & Notes</FormLabel>
+                        <FormLabel className="text-white/60 font-bold uppercase tracking-widest text-[10px]">Observations & Notes</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Detailed conditions, anomalies, synthesis challenges..."
-                            className="min-h-[140px] resize-none bg-white/30 border-white/50 rounded-2xl focus-visible:ring-orange-500 text-slate-900 font-medium p-4"
+                            className="min-h-[140px] resize-none bg-white/5 border-white/10 rounded-2xl focus-visible:ring-orange-500 text-white font-medium p-4"
                             {...field}
                           />
                         </FormControl>
@@ -299,7 +299,7 @@ export default function ExperimentForm() {
                 </div>
 
                 <div className="pt-6 flex justify-end">
-                  <Button type="submit" disabled={createExperiment.isPending} className="w-full md:w-auto bg-gradient-to-r from-orange-600 to-rose-500 text-slate-900 font-bold rounded-full px-10 py-7 text-lg shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:-translate-y-1 transition-all duration-300">
+                  <Button type="submit" disabled={createExperiment.isPending} className="w-full md:w-auto bg-gradient-to-r from-orange-600 to-rose-500 text-white font-bold rounded-full px-10 py-7 text-lg shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:-translate-y-1 transition-all duration-300">
                     <FlaskConical className="w-5 h-5 mr-3" />
                     {createExperiment.isPending ? "Syncing to LIMS..." : "Commit Results to Registry"}
                   </Button>

@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils";
 
 // --- Glass Card Component ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
-    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-3xl border border-white/50 p-6 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-3xl border border-white/10 p-6 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
       {children}
     </div>
   </div>
@@ -85,19 +85,19 @@ export default function Reactions() {
             <Beaker className="w-4 h-4" />
             Library
           </div>
-          <h1 className="text-5xl font-serif font-black tracking-tight text-slate-900 mb-2 drop-shadow-lg">Reactions</h1>
-          <p className="text-lg text-slate-900/60 max-w-xl font-medium">Manage sustainable fuel routes across catalysis and synthetic biology.</p>
+          <h1 className="text-5xl font-serif font-black tracking-tight text-white mb-2 drop-shadow-lg">Reactions</h1>
+          <p className="text-lg text-white/60 max-w-xl font-medium">Manage sustainable fuel routes across catalysis and synthetic biology.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-slate-900 rounded-full px-6 py-6 font-bold shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all">
+            <Button className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-full px-6 py-6 font-bold shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transition-all">
               <Plus className="w-5 h-5" />
               New Reaction
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] bg-[#0F0C29]/95 backdrop-blur-3xl border-white/60 text-slate-900 rounded-[2rem] shadow-2xl">
+          <DialogContent className="sm:max-w-[600px] bg-[#0F0C29]/95 backdrop-blur-3xl border-white/20 text-white rounded-[2rem] shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="text-3xl font-serif font-bold text-slate-900 mb-2">Initialize New Reaction</DialogTitle>
+              <DialogTitle className="text-3xl font-serif font-bold text-white mb-2">Initialize New Reaction</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -106,9 +106,9 @@ export default function Reactions() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-900/70">Reaction Name</FormLabel>
+                      <FormLabel className="text-white/70">Reaction Name</FormLabel>
                       <FormControl>
-                        <Input className="bg-white/40 border-white/50 focus-visible:ring-blue-500" placeholder="e.g. CO2 Hydrogenation to Methanol" {...field} />
+                        <Input className="bg-black/40 border-white/10 focus-visible:ring-blue-500" placeholder="e.g. CO2 Hydrogenation to Methanol" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -120,14 +120,14 @@ export default function Reactions() {
                     name="domain"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/70">Domain</FormLabel>
+                        <FormLabel className="text-white/70">Domain</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="bg-white/40 border-white/50 focus:ring-blue-500">
+                            <SelectTrigger className="bg-black/40 border-white/10 focus:ring-blue-500">
                               <SelectValue placeholder="Select domain" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="bg-[#0F0C29] border-white/50 text-slate-900">
+                          <SelectContent className="bg-[#0F0C29] border-white/10 text-white">
                             <SelectItem value="chemical-catalysis">Chemical Catalysis</SelectItem>
                             <SelectItem value="synthetic-biology">Synthetic Biology</SelectItem>
                           </SelectContent>
@@ -141,9 +141,9 @@ export default function Reactions() {
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/70">Reaction Type</FormLabel>
+                        <FormLabel className="text-white/70">Reaction Type</FormLabel>
                         <FormControl>
-                          <Input className="bg-white/40 border-white/50 focus-visible:ring-blue-500" placeholder="e.g. Heterogeneous catalysis" {...field} />
+                          <Input className="bg-black/40 border-white/10 focus-visible:ring-blue-500" placeholder="e.g. Heterogeneous catalysis" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -155,9 +155,9 @@ export default function Reactions() {
                   name="equation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-900/70">Chemical Equation</FormLabel>
+                      <FormLabel className="text-white/70">Chemical Equation</FormLabel>
                       <FormControl>
-                        <Input className="bg-white/40 border-white/50 focus-visible:ring-blue-500 font-mono text-blue-400" placeholder="CO2 + 3H2 -> CH3OH + H2O" {...field} />
+                        <Input className="bg-black/40 border-white/10 focus-visible:ring-blue-500 font-mono text-blue-400" placeholder="CO2 + 3H2 -> CH3OH + H2O" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -168,9 +168,9 @@ export default function Reactions() {
                   name="targetProduct"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-900/70">Target Product</FormLabel>
+                      <FormLabel className="text-white/70">Target Product</FormLabel>
                       <FormControl>
-                        <Input className="bg-white/40 border-white/50 focus-visible:ring-blue-500" placeholder="e.g. Green methanol" {...field} />
+                        <Input className="bg-black/40 border-white/10 focus-visible:ring-blue-500" placeholder="e.g. Green methanol" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -182,9 +182,9 @@ export default function Reactions() {
                     name="conditions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-900/70">Conditions</FormLabel>
+                        <FormLabel className="text-white/70">Conditions</FormLabel>
                         <FormControl>
-                          <Input className="bg-white/40 border-white/50 focus-visible:ring-blue-500" placeholder="e.g. 80°C, basic aqueous" {...field} />
+                          <Input className="bg-black/40 border-white/10 focus-visible:ring-blue-500" placeholder="e.g. 80°C, basic aqueous" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -196,16 +196,16 @@ export default function Reactions() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-900/70">Description</FormLabel>
+                      <FormLabel className="text-white/70">Description</FormLabel>
                       <FormControl>
-                        <Textarea className="bg-white/40 border-white/50 focus-visible:ring-blue-500 resize-none min-h-[100px]" placeholder="Additional notes..." {...field} />
+                        <Textarea className="bg-black/40 border-white/10 focus-visible:ring-blue-500 resize-none min-h-[100px]" placeholder="Additional notes..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-end pt-6 border-t border-white/50">
-                  <Button type="submit" disabled={createReaction.isPending} className="bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-full px-6">
+                <div className="flex justify-end pt-6 border-t border-white/10">
+                  <Button type="submit" disabled={createReaction.isPending} className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-6">
                     {createReaction.isPending ? "Initializing..." : "Initialize Reaction"}
                   </Button>
                 </div>
@@ -217,14 +217,14 @@ export default function Reactions() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-64 w-full bg-white/30 rounded-[2.5rem]" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-64 w-full bg-white/5 rounded-[2.5rem]" />)}
         </div>
       ) : !reactions || reactions.length === 0 ? (
-        <div className="p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50">
-          <div className="rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-2xl p-16 text-center border border-white/40">
+        <div className="p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10">
+          <div className="rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-2xl p-16 text-center border border-white/5">
             <Beaker className="w-16 h-16 mx-auto text-blue-500/50 mb-6" />
-            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">No Reactions Found</h3>
-            <p className="text-slate-900/50 max-w-sm mx-auto">
+            <h3 className="text-2xl font-serif font-bold text-white mb-2">No Reactions Found</h3>
+            <p className="text-white/50 max-w-sm mx-auto">
               The library is empty. Initialize a new reaction to begin generating AI candidates.
             </p>
           </div>
@@ -239,8 +239,8 @@ export default function Reactions() {
                   
                   <div className="relative z-10 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-6">
-                      <h3 className="text-2xl font-serif font-bold text-slate-900 group-hover:text-blue-300 transition-colors leading-tight">{reaction.name}</h3>
-                      <div className="w-10 h-10 rounded-2xl bg-white/30 border border-white/50 flex items-center justify-center flex-shrink-0 ml-4 group-hover:bg-blue-500/20 transition-colors">
+                      <h3 className="text-2xl font-serif font-bold text-white group-hover:text-blue-300 transition-colors leading-tight">{reaction.name}</h3>
+                      <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 ml-4 group-hover:bg-blue-500/20 transition-colors">
                         {reaction.domain === "chemical-catalysis" ? (
                           <Beaker className="w-5 h-5 text-blue-400" />
                         ) : (
@@ -250,24 +250,24 @@ export default function Reactions() {
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mb-6">
-                      <span className="px-3 py-1 bg-white/50 text-slate-900/70 border border-white/50 rounded-full text-xs font-bold uppercase tracking-wider">
+                      <span className="px-3 py-1 bg-black/50 text-white/70 border border-white/10 rounded-full text-xs font-bold uppercase tracking-wider">
                         {reaction.type}
                       </span>
-                      <span className="px-3 py-1 bg-white/50 text-slate-900/70 border border-white/50 rounded-full text-xs font-bold uppercase tracking-wider">
+                      <span className="px-3 py-1 bg-black/50 text-white/70 border border-white/10 rounded-full text-xs font-bold uppercase tracking-wider">
                         {reaction.domain === "chemical-catalysis" ? "Chem" : "Bio"}
                       </span>
                     </div>
 
                     <div className="space-y-4 mt-auto">
-                      <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                        <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">Equation</div>
+                      <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                        <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Equation</div>
                         <div className="font-mono text-sm text-blue-400 truncate font-bold">
                           {reaction.equation}
                         </div>
                       </div>
-                      <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                        <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-1 font-bold">Target</div>
-                        <div className="text-sm text-slate-900/90 font-medium">{reaction.targetProduct}</div>
+                      <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                        <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1 font-bold">Target</div>
+                        <div className="text-sm text-white/90 font-medium">{reaction.targetProduct}</div>
                       </div>
                     </div>
 

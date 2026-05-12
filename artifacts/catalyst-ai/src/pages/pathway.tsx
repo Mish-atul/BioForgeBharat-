@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 
 // --- Glass Card Component ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] group", className)}>
-    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-3xl border border-white/50 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-3xl border border-white/10 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
       {children}
     </div>
   </div>
@@ -146,8 +146,8 @@ export default function Pathway() {
             <Dna className="w-4 h-4 animate-spin-slow" />
             Synthetic Biology
           </div>
-          <h1 className="text-5xl font-serif font-black tracking-tight text-slate-900 mb-2 drop-shadow-lg">Pathway Explorer</h1>
-          <p className="text-lg text-slate-900/60 max-w-2xl font-medium">
+          <h1 className="text-5xl font-serif font-black tracking-tight text-white mb-2 drop-shadow-lg">Pathway Explorer</h1>
+          <p className="text-lg text-white/60 max-w-2xl font-medium">
             Interactive flux map for <span className="text-fuchsia-400 font-bold">Biomass Ethanol Fermentation</span>.
           </p>
         </div>
@@ -157,12 +157,12 @@ export default function Pathway() {
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, type: "spring" }}>
         <GlassCard>
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-fuchsia-600/10 to-transparent blur-[120px] rounded-full pointer-events-none" />
-          <h2 className="text-2xl font-serif font-bold text-slate-900 mb-6 relative z-10 flex items-center gap-3">
+          <h2 className="text-2xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
             <Zap className="w-6 h-6 text-fuchsia-400" />
             Metabolic Flux Diagram
-            <span className="ml-auto text-xs font-sans font-medium text-slate-900/40 uppercase tracking-widest">Click an arrow to inspect</span>
+            <span className="ml-auto text-xs font-sans font-medium text-white/40 uppercase tracking-widest">Click an arrow to inspect</span>
           </h2>
-          <div className="relative z-10 bg-white/40 rounded-[2rem] border border-white/40 p-8 overflow-hidden shadow-[inset_0_0_80px_rgba(0,0,0,0.8)]">
+          <div className="relative z-10 bg-[#080310]/50 rounded-[2rem] border border-white/5 p-8 overflow-hidden shadow-[inset_0_0_80px_rgba(0,0,0,0.8)]">
             <svg viewBox="0 0 680 370" className="w-full h-auto drop-shadow-2xl overflow-visible">
               <defs>
                 <marker id="arrow-cyan" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto-start-reverse">
@@ -330,32 +330,32 @@ export default function Pathway() {
                 <div className="w-10 h-10 rounded-2xl bg-fuchsia-500/20 border border-fuchsia-500/40 flex items-center justify-center">
                   <Info className="w-5 h-5 text-fuchsia-400" />
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-slate-900">Enzyme Detail — {enzymeDetail.name}</h3>
+                <h3 className="text-2xl font-serif font-bold text-white">Enzyme Detail — {enzymeDetail.name}</h3>
                 <Badge variant="outline" className="ml-auto bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30 text-xs tracking-widest uppercase font-bold py-1 px-3 rounded-full">
                   {enzymeDetail.status}
                 </Badge>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                  <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">Gene</div>
-                  <div className="font-mono text-sm text-slate-900 font-bold">{enzymeDetail.gene}</div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Gene</div>
+                  <div className="font-mono text-sm text-white font-bold">{enzymeDetail.gene}</div>
                 </div>
-                <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                  <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">k_cat</div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">k_cat</div>
                   <div className="font-mono text-sm text-fuchsia-400 font-bold">{enzymeDetail.kcat}</div>
                 </div>
-                <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                  <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">Km</div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Km</div>
                   <div className="font-mono text-sm text-cyan-400 font-bold">{enzymeDetail.km}</div>
                 </div>
-                <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                  <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">Organism</div>
-                  <div className="font-sans text-sm text-slate-900/70 italic">{enzymeDetail.organism}</div>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Organism</div>
+                  <div className="font-sans text-sm text-white/70 italic">{enzymeDetail.organism}</div>
                 </div>
               </div>
               <div className="p-4 rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/5">
                 <div className="text-[10px] text-fuchsia-400 uppercase tracking-widest mb-2 font-bold">Engineering Strategy</div>
-                <p className="text-sm font-medium text-slate-900/90 leading-relaxed">{enzymeDetail.improvement}</p>
+                <p className="text-sm font-medium text-white/90 leading-relaxed">{enzymeDetail.improvement}</p>
               </div>
             </GlassCard>
           </motion.div>
@@ -374,35 +374,35 @@ export default function Pathway() {
               <motion.div key={i} whileHover={{ y: -5 }} onClick={() => setSelectedStrain(i)}>
                 <GlassCard className={selectedStrain === i ? "border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.2)]" : "cursor-pointer"}>
                   <div className="flex items-start justify-between mb-4">
-                    <div className="font-serif font-bold text-xl text-slate-900">{strain.name}</div>
+                    <div className="font-serif font-bold text-xl text-white">{strain.name}</div>
                     <Badge variant="outline" className={`text-[10px] uppercase tracking-widest font-bold border ${strain.status === "validated" ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10" : "text-orange-400 border-orange-500/30 bg-orange-500/10"}`}>
                       {strain.status}
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-900/60 leading-relaxed mb-6 min-h-[60px]">{strain.description}</p>
+                  <p className="text-sm text-white/60 leading-relaxed mb-6 min-h-[60px]">{strain.description}</p>
                   <div className="flex gap-2 flex-wrap mb-6">
                     {strain.tags.map((tag) => (
-                      <span key={tag} className="text-[10px] font-mono font-bold px-3 py-1 rounded-full bg-white/30 text-slate-900/80 border border-white/50">
+                      <span key={tag} className="text-[10px] font-mono font-bold px-3 py-1 rounded-full bg-white/5 text-white/80 border border-white/10">
                         {tag}
                       </span>
                     ))}
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-900/50">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
                         <span>Ethanol</span>
                         <span className="font-mono text-fuchsia-400">{strain.ethanol}%</span>
                       </div>
-                      <div className="h-2 bg-white/50 rounded-full overflow-hidden border border-white/40">
+                      <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
                         <div className="h-full bg-gradient-to-r from-fuchsia-600 to-fuchsia-400 rounded-full shadow-[0_0_10px_rgba(217,70,239,0.5)]" style={{ width: `${strain.ethanol}%` }} />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-900/50">
+                      <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
                         <span>Biomass</span>
-                        <span className="font-mono text-slate-900/50">{strain.biomass}%</span>
+                        <span className="font-mono text-white/50">{strain.biomass}%</span>
                       </div>
-                      <div className="h-2 bg-white/50 rounded-full overflow-hidden border border-white/40">
+                      <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
                         <div className="h-full bg-white/30 rounded-full" style={{ width: `${strain.biomass * 4}%` }} />
                       </div>
                     </div>
@@ -420,25 +420,25 @@ export default function Pathway() {
             Flux Analysis
           </h2>
           <GlassCard className="h-[calc(100%-3rem)] flex flex-col">
-            <h3 className="text-lg font-bold text-slate-900 mb-6 bg-white/30 p-3 rounded-xl border border-white/50 text-center font-mono">
+            <h3 className="text-lg font-bold text-white mb-6 bg-white/5 p-3 rounded-xl border border-white/10 text-center font-mono">
               {STRAINS[selectedStrain].name}
             </h3>
             <div className="grid grid-cols-2 gap-4 mb-8 flex-1">
               {[
                 { label: "EtOH Yield", value: `${STRAINS[selectedStrain].ethanol}%`, note: "max 95.1%", color: "text-fuchsia-400" },
-                { label: "Biomass", value: `${STRAINS[selectedStrain].biomass}%`, note: "gDCW/gGlc", color: "text-slate-900/60" },
+                { label: "Biomass", value: `${STRAINS[selectedStrain].biomass}%`, note: "gDCW/gGlc", color: "text-white/60" },
                 { label: "Glc Uptake", value: "2.1", note: "mmol/gDCW·h", color: "text-cyan-400" },
                 { label: "O₂ Req.", value: "Anaer.", note: "mode", color: "text-orange-400" },
               ].map((item) => (
-                <div key={item.label} className="flex flex-col justify-center p-4 rounded-2xl border border-white/40 bg-white/40 text-center shadow-inner">
-                  <div className="text-[10px] text-slate-900/40 uppercase tracking-widest font-bold mb-2">{item.label}</div>
+                <div key={item.label} className="flex flex-col justify-center p-4 rounded-2xl border border-white/5 bg-black/40 text-center shadow-inner">
+                  <div className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-2">{item.label}</div>
                   <div className={`text-2xl font-mono font-black ${item.color}`}>{item.value}</div>
-                  <div className="text-[10px] text-slate-900/30 mt-1">{item.note}</div>
+                  <div className="text-[10px] text-white/30 mt-1">{item.note}</div>
                 </div>
               ))}
             </div>
             <div className="mt-auto">
-              <Button className="w-full bg-gradient-to-r from-orange-600 to-rose-500 text-slate-900 rounded-xl py-6 font-bold shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all">
+              <Button className="w-full bg-gradient-to-r from-orange-600 to-rose-500 text-white rounded-xl py-6 font-bold shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] transition-all">
                 Export SBML Model
               </Button>
             </div>

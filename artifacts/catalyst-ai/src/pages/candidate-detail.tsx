@@ -36,8 +36,8 @@ import { cn } from "@/lib/utils";
 
 // --- Glass Card Component ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
-    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-3xl border border-white/40 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#1A1528]/80 backdrop-blur-3xl border border-white/5 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
       {children}
     </div>
   </div>
@@ -96,7 +96,7 @@ function MoleculeViz({ structureData }: { structureData: string }) {
   try {
     data = JSON.parse(structureData) as StructureData;
   } catch {
-    return <div className="text-xs text-slate-900/40 italic">Structure data unavailable</div>;
+    return <div className="text-xs text-white/40 italic">Structure data unavailable</div>;
   }
   if (!data || !data.nodes) return null;
 
@@ -105,7 +105,7 @@ function MoleculeViz({ structureData }: { structureData: string }) {
   const h = 160;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-48 rounded-2xl bg-white/40 border border-white/40 drop-shadow-xl">
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-48 rounded-2xl bg-black/40 border border-white/5 drop-shadow-xl">
       <defs>
         <filter id="glow-cyan">
           <feGaussianBlur stdDeviation="3" result="blur" />
@@ -185,7 +185,7 @@ function MolecularPropertiesCard({ candidate }: { candidate: MolecularProperties
         <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
           <Database className="w-5 h-5 text-cyan-400" />
         </div>
-        <h3 className="text-xl font-serif font-bold text-slate-900">Molecular Properties</h3>
+        <h3 className="text-xl font-serif font-bold text-white">Molecular Properties</h3>
         {candidate.sourceDb && (
           <Badge variant="outline" className="ml-auto bg-cyan-500/10 text-cyan-300 border-cyan-500/30 text-[10px] tracking-widest uppercase font-bold py-1 px-3 rounded-full">
             {candidate.sourceDb}
@@ -194,15 +194,15 @@ function MolecularPropertiesCard({ candidate }: { candidate: MolecularProperties
       </div>
       <div className="space-y-4 relative z-10">
         {!hasAnyProp ? (
-          <div className="text-slate-900/50 italic py-4">
+          <div className="text-white/50 italic py-4">
             No matching record in PubChem or ChEMBL for this structure.
           </div>
         ) : (
           <>
             {candidate.iupacName && (
-              <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">IUPAC Name</div>
-                <div className="font-mono text-xs text-slate-900/90 leading-relaxed break-words font-medium">
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">IUPAC Name</div>
+                <div className="font-mono text-xs text-white/90 leading-relaxed break-words font-medium">
                   {candidate.iupacName}
                 </div>
               </div>
@@ -213,8 +213,8 @@ function MolecularPropertiesCard({ candidate }: { candidate: MolecularProperties
               <PropCell label="TPSA (Å²)" value={candidate.tpsa?.toFixed(1)} color="text-cyan-400" />
             </div>
             {candidate.canonicalSmiles && (
-              <div className="bg-white/40 border border-white/40 rounded-2xl p-4">
-                <div className="text-[10px] text-slate-900/40 uppercase tracking-widest mb-2 font-bold">Canonical SMILES</div>
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Canonical SMILES</div>
                 <div className="font-mono text-xs text-cyan-400 font-bold break-all leading-relaxed">
                   {candidate.canonicalSmiles}
                 </div>
@@ -243,8 +243,8 @@ function MolecularPropertiesCard({ candidate }: { candidate: MolecularProperties
 
 function PropCell({ label, value, color }: { label: string; value: string | undefined; color: string }) {
   return (
-    <div className="rounded-2xl border border-white/40 bg-white/40 p-4 flex flex-col justify-center items-center text-center shadow-inner">
-      <div className="text-[10px] uppercase tracking-widest text-slate-900/40 font-bold mb-2">{label}</div>
+    <div className="rounded-2xl border border-white/5 bg-black/40 p-4 flex flex-col justify-center items-center text-center shadow-inner">
+      <div className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-2">{label}</div>
       <div className={`font-mono text-lg font-black ${color}`}>
         {value ?? "—"}
       </div>
@@ -278,14 +278,14 @@ function ExtendedScoreGrid({ candidate }: { candidate: {
 
   return (
     <GlassCard>
-      <h3 className="text-xl font-serif font-bold text-slate-900 mb-6 relative z-10 flex items-center gap-3">
+      <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
         <BrainCircuit className="w-5 h-5 text-orange-400" />
         Feasibility Scores
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative z-10">
         {items.map(([label, value, textColor, bgColor]) => (
           <div key={label} className={cn("rounded-2xl border p-4 text-center shadow-inner", bgColor)}>
-            <div className="text-[10px] uppercase tracking-widest text-slate-900/60 font-bold mb-2">{label}</div>
+            <div className="text-[10px] uppercase tracking-widest text-white/60 font-bold mb-2">{label}</div>
             <div className={cn("font-mono text-xl font-black drop-shadow-md", textColor)}>
               {typeof value === "number" ? `${(value * 100).toFixed(0)}%` : "—"}
             </div>
@@ -309,8 +309,8 @@ export default function CandidateDetail() {
       <div className="space-y-8">
         <Skeleton className="h-12 w-80 bg-white/10 rounded-xl" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Skeleton className="h-96 bg-white/30 rounded-[2.5rem]" />
-          <Skeleton className="h-96 bg-white/30 rounded-[2.5rem] lg:col-span-2" />
+          <Skeleton className="h-96 bg-white/5 rounded-[2.5rem]" />
+          <Skeleton className="h-96 bg-white/5 rounded-[2.5rem] lg:col-span-2" />
         </div>
       </div>
     );
@@ -347,7 +347,7 @@ export default function CandidateDetail() {
       {/* Header */}
       <motion.div variants={fadeUp as any} custom={0} className="flex items-start gap-6">
         <Link href={`/reactions/${candidate.reactionId}`}>
-          <Button variant="ghost" className="rounded-full w-12 h-12 bg-white/30 border border-white/50 hover:bg-white/10 hover:text-slate-900 transition-all shadow-lg p-0">
+          <Button variant="ghost" className="rounded-full w-12 h-12 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all shadow-lg p-0">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>
@@ -363,7 +363,7 @@ export default function CandidateDetail() {
               </Badge>
             )}
           </div>
-          <h1 className="text-4xl md:text-5xl font-serif font-black tracking-tight text-slate-900 drop-shadow-lg">{candidate.name}</h1>
+          <h1 className="text-4xl md:text-5xl font-serif font-black tracking-tight text-white drop-shadow-lg">{candidate.name}</h1>
           <div className="font-mono text-lg text-cyan-400 font-bold mt-2 tracking-tight">{candidate.formula}</div>
         </div>
       </motion.div>
@@ -376,7 +376,7 @@ export default function CandidateDetail() {
           {/* Structure */}
           <GlassCard>
             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" />
-            <h3 className="text-xl font-serif font-bold text-slate-900 mb-6 relative z-10 flex items-center gap-3">
+            <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
               <Atom className="w-5 h-5 text-cyan-400" />
               Molecular Structure
             </h3>
@@ -387,7 +387,7 @@ export default function CandidateDetail() {
 
           {/* Predictions */}
           <GlassCard>
-            <h3 className="text-xl font-serif font-bold text-slate-900 mb-6 relative z-10 flex items-center gap-3">
+            <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
               <BrainCircuit className="w-5 h-5 text-fuchsia-400" />
               Predicted Performance
             </h3>
@@ -399,11 +399,11 @@ export default function CandidateDetail() {
                 { label: "Confidence", value: candidate.confidenceScore, color: "from-yellow-600 to-yellow-400", glow: "shadow-[0_0_10px_rgba(234,179,8,0.5)]" },
               ].map(({ label, value, color, glow }) => (
                 <div key={label} className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-900/50">
+                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
                     <span>{label}</span>
-                    <span className="font-mono text-slate-900/90">{(value * 100).toFixed(1)}%</span>
+                    <span className="font-mono text-white/90">{(value * 100).toFixed(1)}%</span>
                   </div>
-                  <div className="h-2 bg-white/50 rounded-full overflow-hidden border border-white/40">
+                  <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
                     <div className={cn("h-full rounded-full bg-gradient-to-r", color, glow)} style={{ width: `${value * 100}%` }} />
                   </div>
                 </div>
@@ -421,18 +421,18 @@ export default function CandidateDetail() {
 
           {/* Mechanism */}
           <GlassCard>
-            <h3 className="text-xl font-serif font-bold text-slate-900 mb-6 relative z-10 flex items-center gap-3">
+            <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
               <FlaskConical className="w-5 h-5 text-orange-400" />
               Proposed Mechanism
             </h3>
-            <div className="relative z-10 bg-white/40 border border-white/40 rounded-2xl p-6">
-              <p className="text-base leading-relaxed text-slate-900/80 font-medium">{candidate.mechanismText}</p>
+            <div className="relative z-10 bg-black/40 border border-white/5 rounded-2xl p-6">
+              <p className="text-base leading-relaxed text-white/80 font-medium">{candidate.mechanismText}</p>
             </div>
           </GlassCard>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <GlassCard>
-              <h3 className="text-xl font-serif font-bold text-slate-900 mb-6 relative z-10 flex items-center gap-3">
+              <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
                 <Activity className="w-5 h-5 text-blue-400" />
                 Profile Mapping
               </h3>
@@ -449,7 +449,7 @@ export default function CandidateDetail() {
 
             <GlassCard className="flex flex-col">
               <div className="flex items-center justify-between mb-6 relative z-10">
-                <h3 className="text-xl font-serif font-bold text-slate-900 flex items-center gap-3">
+                <h3 className="text-xl font-serif font-bold text-white flex items-center gap-3">
                   <FlaskConical className="w-5 h-5 text-emerald-400" />
                   Validation
                   <span className="ml-2 font-mono text-sm text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
@@ -467,8 +467,8 @@ export default function CandidateDetail() {
               <div className="relative z-10 flex-1 flex flex-col justify-center">
                 {experiments.length === 0 ? (
                   <div className="text-center py-8">
-                    <FlaskConical className="w-10 h-10 mx-auto mb-3 text-slate-900/20" />
-                    <p className="text-sm font-medium text-slate-900/40">No experiments logged yet</p>
+                    <FlaskConical className="w-10 h-10 mx-auto mb-3 text-white/20" />
+                    <p className="text-sm font-medium text-white/40">No experiments logged yet</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -489,16 +489,16 @@ export default function CandidateDetail() {
                     )}
                     {experiments.map((exp: Experiment) => (
                       <Link key={exp.id} href={`/experiments/${exp.id}`}>
-                        <div className="flex items-center justify-between p-4 rounded-2xl border border-white/40 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer bg-white/40 group shadow-inner">
+                        <div className="flex items-center justify-between p-4 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer bg-black/40 group shadow-inner">
                           <div>
                             <div className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold mb-1">{exp.researcherName}</div>
-                            <div className="text-sm font-medium text-slate-900/80">
-                              Activity: <span className="font-mono text-slate-900 font-bold">{(exp.measuredActivity * 100).toFixed(1)}%</span>
-                              <span className="mx-2 text-slate-900/20">|</span>
-                              Yield: <span className="font-mono text-slate-900 font-bold">{(exp.measuredYield * 100).toFixed(1)}%</span>
+                            <div className="text-sm font-medium text-white/80">
+                              Activity: <span className="font-mono text-white font-bold">{(exp.measuredActivity * 100).toFixed(1)}%</span>
+                              <span className="mx-2 text-white/20">|</span>
+                              Yield: <span className="font-mono text-white font-bold">{(exp.measuredYield * 100).toFixed(1)}%</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 text-[10px] font-bold font-mono uppercase tracking-widest text-slate-900/40 group-hover:text-emerald-300 transition-colors">
+                          <div className="flex items-center gap-2 text-[10px] font-bold font-mono uppercase tracking-widest text-white/40 group-hover:text-emerald-300 transition-colors">
                             <Clock className="w-3 h-3" />
                             {new Date(exp.createdAt).toLocaleDateString()}
                           </div>
