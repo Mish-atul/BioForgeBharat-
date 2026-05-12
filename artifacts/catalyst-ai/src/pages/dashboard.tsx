@@ -44,8 +44,8 @@ const staggerChild = {
 
 // --- Components ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
-    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-3xl border border-white/10 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+  <div className={cn("p-2 rounded-[2.5rem] bg-white/[0.02] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4)] group hover:bg-white/[0.04] transition-colors duration-500", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.5rem)] bg-[#1A1528]/80 backdrop-blur-3xl border border-white/5 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
       {children}
     </div>
   </div>

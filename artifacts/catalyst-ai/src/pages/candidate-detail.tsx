@@ -1,7 +1,7 @@
+import React from "react";
 import { useParams, Link } from "wouter";
 import { useGetCandidate, getGetCandidateQueryKey } from "@workspace/api-client-react";
 import type { Experiment } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,10 @@ import {
   Clock,
   Database,
   ExternalLink,
+  ChevronRight,
+  BrainCircuit,
+  Activity,
+  Plus
 } from "lucide-react";
 import {
   RadarChart,
@@ -21,14 +25,55 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
 } from "recharts";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+// --- Glass Card Component ---
+const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <div className={cn("p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] group hover:bg-white/[0.06] transition-colors duration-500", className)}>
+    <div className="h-full w-full rounded-[calc(2.5rem-0.375rem)] bg-[#1A1528]/80 backdrop-blur-3xl border border-white/5 p-6 md:p-8 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+      {children}
+    </div>
+  </div>
+);
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 40, filter: "blur(12px)", scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { delay: i * 0.1, duration: 0.8, type: "spring", bounce: 0.4 },
+  }),
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+const staggerChild = {
+  hidden: { opacity: 0, y: 30, scale: 0.9 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, type: "spring", bounce: 0.5 } },
+};
+
+const TOOLTIP_STYLE = {
+  backgroundColor: "rgba(10, 5, 20, 0.95)",
+  backdropFilter: "blur(20px)",
+  border: "1px solid rgba(255, 255, 255, 0.1)",
+  borderRadius: 16,
+  color: "#fff",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+  fontFamily: "'JetBrains Mono', monospace",
+  fontWeight: "bold"
+};
 
 interface StructureNode {
   id: string;
@@ -51,7 +96,7 @@ function MoleculeViz({ structureData }: { structureData: string }) {
   try {
     data = JSON.parse(structureData) as StructureData;
   } catch {
-    return <div className="text-xs text-muted-foreground italic">Structure data unavailable</div>;
+    return <div className="text-xs text-white/40 italic">Structure data unavailable</div>;
   }
   if (!data || !data.nodes) return null;
 
@@ -60,10 +105,10 @@ function MoleculeViz({ structureData }: { structureData: string }) {
   const h = 160;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-40 rounded bg-background/50 border border-border">
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-48 rounded-2xl bg-black/40 border border-white/5 drop-shadow-xl">
       <defs>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
+        <filter id="glow-cyan">
+          <feGaussianBlur stdDeviation="3" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
       </defs>
@@ -78,30 +123,30 @@ function MoleculeViz({ structureData }: { structureData: string }) {
             y1={from.y}
             x2={to.x}
             y2={to.y}
-            stroke="hsl(180 100% 40% / 0.5)"
-            strokeWidth={1.5}
+            stroke="rgba(6, 182, 212, 0.6)"
+            strokeWidth={2}
             strokeDasharray="4 2"
           />
         );
       })}
       {data.nodes.map((node) => (
-        <g key={node.id}>
+        <g key={node.id} className="hover:-translate-y-1 transition-transform cursor-pointer">
           <circle
             cx={node.x}
             cy={node.y}
             r={node.r ?? 18}
-            fill={`${node.color ?? "#00cccc"}22`}
-            stroke={node.color ?? "#00cccc"}
-            strokeWidth={1.5}
-            filter="url(#glow)"
+            fill={`${node.color ?? "#06b6d4"}33`}
+            stroke={node.color ?? "#06b6d4"}
+            strokeWidth={2}
+            filter="url(#glow-cyan)"
           />
           <text
             x={node.x}
             y={node.y}
             textAnchor="middle"
             dominantBaseline="central"
-            fill="#e2e8f0"
-            fontSize="9"
+            fill="#fff"
+            fontSize="10"
             fontFamily="monospace"
             fontWeight="bold"
           >
@@ -135,78 +180,55 @@ function MolecularPropertiesCard({ candidate }: { candidate: MolecularProperties
     candidate.chemblId != null;
 
   return (
-    <Card className="bg-card border-border" data-testid="card-molecular-properties">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-          <Database className="w-3.5 h-3.5" />
-          Molecular Properties
-          {candidate.sourceDb && (
-            <Badge
-              variant="outline"
-              className="ml-auto text-[10px] font-mono border-chart-3/50 text-chart-3"
-              data-testid="badge-source-db"
-            >
-              {candidate.sourceDb}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-xs">
+    <GlassCard>
+      <div className="flex items-center gap-3 mb-6 relative z-10">
+        <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
+          <Database className="w-5 h-5 text-cyan-400" />
+        </div>
+        <h3 className="text-xl font-serif font-bold text-white">Molecular Properties</h3>
+        {candidate.sourceDb && (
+          <Badge variant="outline" className="ml-auto bg-cyan-500/10 text-cyan-300 border-cyan-500/30 text-[10px] tracking-widest uppercase font-bold py-1 px-3 rounded-full">
+            {candidate.sourceDb}
+          </Badge>
+        )}
+      </div>
+      <div className="space-y-4 relative z-10">
         {!hasAnyProp ? (
-          <div className="text-muted-foreground italic py-2">
+          <div className="text-white/50 italic py-4">
             No matching record in PubChem or ChEMBL for this structure.
           </div>
         ) : (
           <>
             {candidate.iupacName && (
-              <div>
-                <div className="text-muted-foreground uppercase tracking-wider text-[10px] mb-0.5">
-                  IUPAC Name
-                </div>
-                <div className="font-mono text-[11px] leading-snug break-words" data-testid="text-iupac-name">
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">IUPAC Name</div>
+                <div className="font-mono text-xs text-white/90 leading-relaxed break-words font-medium">
                   {candidate.iupacName}
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-3 gap-2">
-              <PropCell label="MW (g/mol)" value={candidate.molecularWeight?.toFixed(2)} testid="prop-mw" />
-              <PropCell label="logP" value={candidate.logP?.toFixed(2)} testid="prop-logp" />
-              <PropCell label="TPSA (Å²)" value={candidate.tpsa?.toFixed(1)} testid="prop-tpsa" />
+            <div className="grid grid-cols-3 gap-3">
+              <PropCell label="MW (g/mol)" value={candidate.molecularWeight?.toFixed(2)} color="text-fuchsia-400" />
+              <PropCell label="logP" value={candidate.logP?.toFixed(2)} color="text-orange-400" />
+              <PropCell label="TPSA (Å²)" value={candidate.tpsa?.toFixed(1)} color="text-cyan-400" />
             </div>
             {candidate.canonicalSmiles && (
-              <div>
-                <div className="text-muted-foreground uppercase tracking-wider text-[10px] mb-0.5">
-                  Canonical SMILES
-                </div>
-                <div
-                  className="font-mono text-[10px] leading-snug break-all bg-background/60 border border-border rounded p-2"
-                  data-testid="text-smiles"
-                >
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Canonical SMILES</div>
+                <div className="font-mono text-xs text-cyan-400 font-bold break-all leading-relaxed">
                   {candidate.canonicalSmiles}
                 </div>
               </div>
             )}
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-3 pt-2">
               {candidate.pubchemCid != null && (
-                <a
-                  href={`https://pubchem.ncbi.nlm.nih.gov/compound/${candidate.pubchemCid}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center gap-1 text-[10px] font-mono text-primary hover:underline"
-                  data-testid="link-pubchem"
-                >
+                <a href={`https://pubchem.ncbi.nlm.nih.gov/compound/${candidate.pubchemCid}`} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:bg-blue-500/20 transition-colors">
                   PubChem CID {candidate.pubchemCid}
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}
               {candidate.chemblId && (
-                <a
-                  href={`https://www.ebi.ac.uk/chembl/compound_report_card/${candidate.chemblId}/`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center gap-1 text-[10px] font-mono text-accent hover:underline"
-                  data-testid="link-chembl"
-                >
+                <a href={`https://www.ebi.ac.uk/chembl/compound_report_card/${candidate.chemblId}/`} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 text-[10px] font-bold uppercase tracking-widest text-fuchsia-400 hover:bg-fuchsia-500/20 transition-colors">
                   {candidate.chemblId}
                   <ExternalLink className="w-3 h-3" />
                 </a>
@@ -214,39 +236,21 @@ function MolecularPropertiesCard({ candidate }: { candidate: MolecularProperties
             </div>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </GlassCard>
   );
 }
 
-function PropCell({
-  label,
-  value,
-  testid,
-}: {
-  label: string;
-  value: string | undefined;
-  testid: string;
-}) {
+function PropCell({ label, value, color }: { label: string; value: string | undefined; color: string }) {
   return (
-    <div
-      className="rounded border border-border bg-background/40 p-2"
-      data-testid={testid}
-    >
-      <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="font-mono text-sm font-bold text-foreground/90 mt-0.5">
+    <div className="rounded-2xl border border-white/5 bg-black/40 p-4 flex flex-col justify-center items-center text-center shadow-inner">
+      <div className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-2">{label}</div>
+      <div className={`font-mono text-lg font-black ${color}`}>
         {value ?? "—"}
       </div>
     </div>
   );
 }
-
-const TOOLTIP_STYLE = {
-  backgroundColor: "hsl(222 47% 8%)",
-  border: "1px solid hsl(215 30% 18%)",
-  borderRadius: 4,
-  color: "hsl(210 40% 98%)",
-};
 
 function parseJson<T>(value: string | null | undefined): T | null {
   if (!value) return null;
@@ -265,90 +269,30 @@ function ExtendedScoreGrid({ candidate }: { candidate: {
   uncertaintyScore?: number | null;
 } }) {
   const items = [
-    ["Feedstock Fit", candidate.feedstockFitScore, "text-primary"],
-    ["Cost Fit", candidate.costScore, "text-chart-3"],
-    ["Sustainability", candidate.sustainabilityScore, "text-accent"],
-    ["Scalability", candidate.scalabilityScore, "text-chart-4"],
-    ["Uncertainty", candidate.uncertaintyScore, "text-destructive"],
+    ["Feedstock Fit", candidate.feedstockFitScore, "text-fuchsia-400", "bg-fuchsia-500/10 border-fuchsia-500/20"],
+    ["Cost Fit", candidate.costScore, "text-blue-400", "bg-blue-500/10 border-blue-500/20"],
+    ["Sustainability", candidate.sustainabilityScore, "text-cyan-400", "bg-cyan-500/10 border-cyan-500/20"],
+    ["Scalability", candidate.scalabilityScore, "text-orange-400", "bg-orange-500/10 border-orange-500/20"],
+    ["Uncertainty", candidate.uncertaintyScore, "text-rose-400", "bg-rose-500/10 border-rose-500/20"],
   ] as const;
 
   return (
-    <Card className="bg-card border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Feasibility Scores</CardTitle>
-      </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {items.map(([label, value, color]) => (
-          <div key={label} className="rounded border border-border bg-background/50 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-            <div className={`font-mono text-lg font-bold mt-1 ${color}`}>
+    <GlassCard>
+      <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+        <BrainCircuit className="w-5 h-5 text-orange-400" />
+        Feasibility Scores
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative z-10">
+        {items.map(([label, value, textColor, bgColor]) => (
+          <div key={label} className={cn("rounded-2xl border p-4 text-center shadow-inner", bgColor)}>
+            <div className="text-[10px] uppercase tracking-widest text-white/60 font-bold mb-2">{label}</div>
+            <div className={cn("font-mono text-xl font-black drop-shadow-md", textColor)}>
               {typeof value === "number" ? `${(value * 100).toFixed(0)}%` : "—"}
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
-  );
-}
-
-function SimulationPanel({ candidate }: { candidate: {
-  energyProfileData?: string | null;
-  pathwayData?: string | null;
-  evidenceText?: string | null;
-} }) {
-  const energy = parseJson<{ steps?: Array<{ label: string; energy: number }> }>(candidate.energyProfileData);
-  const pathway = parseJson<{ nodes?: Array<{ id: string; label: string; flux: number }>; edits?: string[]; bottlenecks?: string[] }>(candidate.pathwayData);
-
-  return (
-    <Card className="bg-card border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">
-          Simulation Evidence
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {candidate.evidenceText && (
-          <p className="text-sm leading-relaxed text-foreground/90">{candidate.evidenceText}</p>
-        )}
-        {energy?.steps && (
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={energy.steps}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(215 30% 18%)" />
-              <XAxis dataKey="label" tick={{ fill: "hsl(215 20% 65%)", fontSize: 10 }} />
-              <YAxis tick={{ fill: "hsl(215 20% 65%)", fontSize: 10 }} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Line type="monotone" dataKey="energy" stroke="hsl(180 100% 40%)" strokeWidth={2} dot={{ r: 4 }} name="Energy proxy" />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
-        {pathway?.nodes && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {pathway.nodes.map((node) => (
-                <div key={node.id} className="rounded border border-border bg-background p-3">
-                  <div className="text-sm font-semibold">{node.label}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Flux proxy</div>
-                  <div className="font-mono text-lg text-accent">{node.flux}%</div>
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div className="rounded border border-border bg-background p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Gene / Enzyme Edits</div>
-                {(pathway.edits ?? []).map((edit) => <div key={edit}>• {edit}</div>)}
-              </div>
-              <div className="rounded border border-border bg-background p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Bottlenecks</div>
-                {(pathway.bottlenecks ?? []).map((bottleneck) => <div key={bottleneck}>• {bottleneck}</div>)}
-              </div>
-            </div>
-          </div>
-        )}
-        {!candidate.evidenceText && !energy?.steps && !pathway?.nodes && (
-          <div className="text-sm text-muted-foreground">No simulation evidence attached to this candidate.</div>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+    </GlassCard>
   );
 }
 
@@ -362,11 +306,11 @@ export default function CandidateDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64 bg-card" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-64 bg-card" />
-          <Skeleton className="h-64 bg-card lg:col-span-2" />
+      <div className="space-y-8">
+        <Skeleton className="h-12 w-80 bg-white/10 rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Skeleton className="h-96 bg-white/5 rounded-[2.5rem]" />
+          <Skeleton className="h-96 bg-white/5 rounded-[2.5rem] lg:col-span-2" />
         </div>
       </div>
     );
@@ -398,179 +342,176 @@ export default function CandidateDetail() {
     : [];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <motion.div initial="hidden" animate="visible" variants={staggerContainer as any} className="space-y-8 pb-20">
+      
       {/* Header */}
-      <div className="flex items-start gap-4">
+      <motion.div variants={fadeUp as any} custom={0} className="flex items-start gap-6">
         <Link href={`/reactions/${candidate.reactionId}`}>
-          <Button variant="ghost" size="icon" className="mt-1" data-testid="btn-back">
-            <ArrowLeft className="w-4 h-4" />
+          <Button variant="ghost" className="rounded-full w-12 h-12 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all shadow-lg p-0">
+            <ArrowLeft className="w-5 h-5" />
           </Button>
         </Link>
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <Atom className="w-5 h-5 text-primary" />
-            <Badge
-              variant="outline"
-              className={`text-xs font-mono ${candidate.source === "generated" ? "border-primary/50 text-primary" : "border-accent/50 text-accent"}`}
-            >
+          <div className="flex items-center gap-3 mb-2">
+            <Atom className="w-5 h-5 text-fuchsia-400" />
+            <Badge variant="outline" className={cn("text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full", candidate.source === "generated" ? "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/30" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/30")}>
               {candidate.source}
             </Badge>
             {candidate.rank && (
-              <Badge variant="outline" className="text-xs font-mono border-chart-4/50 text-chart-4">
+              <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full bg-orange-500/10 text-orange-400 border-orange-500/30">
                 Rank #{candidate.rank}
               </Badge>
             )}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">{candidate.name}</h1>
-          <div className="font-mono text-sm text-muted-foreground mt-1">{candidate.formula}</div>
+          <h1 className="text-4xl md:text-5xl font-serif font-black tracking-tight text-white drop-shadow-lg">{candidate.name}</h1>
+          <div className="font-mono text-lg text-cyan-400 font-bold mt-2 tracking-tight">{candidate.formula}</div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
         {/* Left Column */}
-        <div className="space-y-6">
-          {/* Molecular Structure */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Molecular Structure</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <motion.div variants={fadeUp as any} custom={1} className="space-y-8">
+          
+          {/* Structure */}
+          <GlassCard>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" />
+            <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+              <Atom className="w-5 h-5 text-cyan-400" />
+              Molecular Structure
+            </h3>
+            <div className="relative z-10">
               <MoleculeViz structureData={candidate.structureData} />
-            </CardContent>
-          </Card>
+            </div>
+          </GlassCard>
 
-          {/* Predicted Metrics */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Predicted Performance</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          {/* Predictions */}
+          <GlassCard>
+            <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+              <BrainCircuit className="w-5 h-5 text-fuchsia-400" />
+              Predicted Performance
+            </h3>
+            <div className="space-y-5 relative z-10">
               {[
-                { label: "Activity", value: candidate.predictedActivity, color: "bg-primary" },
-                { label: "Selectivity", value: candidate.predictedSelectivity, color: "bg-accent" },
-                { label: "Stability", value: candidate.predictedStability, color: "bg-chart-3" },
-                { label: "Confidence", value: candidate.confidenceScore, color: "bg-chart-4" },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">{label}</span>
-                    <span className="font-mono font-bold">{(value * 100).toFixed(1)}%</span>
+                { label: "Activity", value: candidate.predictedActivity, color: "from-fuchsia-600 to-fuchsia-400", glow: "shadow-[0_0_10px_rgba(217,70,239,0.5)]" },
+                { label: "Selectivity", value: candidate.predictedSelectivity, color: "from-cyan-600 to-cyan-400", glow: "shadow-[0_0_10px_rgba(6,182,212,0.5)]" },
+                { label: "Stability", value: candidate.predictedStability, color: "from-orange-600 to-orange-400", glow: "shadow-[0_0_10px_rgba(249,115,22,0.5)]" },
+                { label: "Confidence", value: candidate.confidenceScore, color: "from-yellow-600 to-yellow-400", glow: "shadow-[0_0_10px_rgba(234,179,8,0.5)]" },
+              ].map(({ label, value, color, glow }) => (
+                <div key={label} className="space-y-2">
+                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-white/50">
+                    <span>{label}</span>
+                    <span className="font-mono text-white/90">{(value * 100).toFixed(1)}%</span>
                   </div>
-                  <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${color} rounded-full transition-all duration-700`}
-                      style={{ width: `${value * 100}%` }}
-                    />
+                  <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                    <div className={cn("h-full rounded-full bg-gradient-to-r", color, glow)} style={{ width: `${value * 100}%` }} />
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </GlassCard>
 
-          {/* Cheminformatics: real molecular properties from PubChem/ChEMBL */}
           <MolecularPropertiesCard candidate={candidate} />
-        </div>
+        </motion.div>
 
         {/* Right Column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Mechanism */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Proposed Mechanism</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed text-foreground/90">{candidate.mechanismText}</p>
-            </CardContent>
-          </Card>
-
+        <motion.div variants={fadeUp as any} custom={2} className="lg:col-span-2 space-y-8">
+          
           <ExtendedScoreGrid candidate={candidate} />
 
-          <SimulationPanel candidate={candidate} />
+          {/* Mechanism */}
+          <GlassCard>
+            <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+              <FlaskConical className="w-5 h-5 text-orange-400" />
+              Proposed Mechanism
+            </h3>
+            <div className="relative z-10 bg-black/40 border border-white/5 rounded-2xl p-6">
+              <p className="text-base leading-relaxed text-white/80 font-medium">{candidate.mechanismText}</p>
+            </div>
+          </GlassCard>
 
-          {/* Radar Chart */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">Performance Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="hsl(215 30% 18%)" />
-                  <PolarAngleAxis dataKey="metric" tick={{ fill: "hsl(215 20% 65%)", fontSize: 11 }} />
-                  <Radar
-                    name="Predicted"
-                    dataKey="predicted"
-                    stroke="hsl(180 100% 40%)"
-                    fill="hsl(180 100% 40%)"
-                    fillOpacity={0.15}
-                    strokeWidth={2}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <GlassCard>
+              <h3 className="text-xl font-serif font-bold text-white mb-6 relative z-10 flex items-center gap-3">
+                <Activity className="w-5 h-5 text-blue-400" />
+                Profile Mapping
+              </h3>
+              <div className="relative z-10">
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                    <PolarAngleAxis dataKey="metric" tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: "bold", fontFamily: "monospace" }} />
+                    <Radar name="Predicted" dataKey="predicted" stroke="#d946ef" fill="#d946ef" fillOpacity={0.2} strokeWidth={2} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </GlassCard>
 
-          {/* Experiments */}
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-muted-foreground uppercase tracking-wider">
-                Experimental Validation
-                <span className="ml-2 font-mono text-xs">({experiments.length})</span>
-              </CardTitle>
-              <Link href="/experiments/new">
-                <Button size="sm" variant="outline" className="text-xs h-7" data-testid="btn-log-experiment">
-                  <FlaskConical className="w-3 h-3 mr-1" />
-                  Log Experiment
-                </Button>
-              </Link>
-            </CardHeader>
-            <CardContent>
-              {experiments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FlaskConical className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No experiments logged yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {comparisonData.length > 0 && (
-                    <div className="mb-4">
-                      <ResponsiveContainer width="100%" height={150}>
-                        <BarChart data={comparisonData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(215 30% 18%)" />
-                          <XAxis dataKey="name" tick={{ fill: "hsl(215 20% 65%)", fontSize: 11 }} />
-                          <YAxis domain={[0, 100]} tick={{ fill: "hsl(215 20% 65%)", fontSize: 11 }} />
-                          <Tooltip contentStyle={TOOLTIP_STYLE} />
-                          <Legend />
-                          <Bar dataKey="Predicted" fill="hsl(180 100% 40%)" fillOpacity={0.7} radius={[2, 2, 0, 0]} />
-                          <Bar dataKey="Measured" fill="hsl(150 100% 45%)" fillOpacity={0.7} radius={[2, 2, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                  {experiments.map((exp: Experiment) => (
-                    <Link key={exp.id} href={`/experiments/${exp.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded border border-border hover:border-primary transition-colors cursor-pointer bg-background">
-                        <div>
-                          <div className="text-xs text-muted-foreground font-mono">{exp.researcherName}</div>
-                          <div className="text-sm mt-0.5">
-                            Activity: <span className="font-mono text-accent">{(exp.measuredActivity * 100).toFixed(1)}%</span>
-                            {" · "}
-                            Yield: <span className="font-mono text-primary">{(exp.measuredYield * 100).toFixed(1)}%</span>
+            <GlassCard className="flex flex-col">
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <h3 className="text-xl font-serif font-bold text-white flex items-center gap-3">
+                  <FlaskConical className="w-5 h-5 text-emerald-400" />
+                  Validation
+                  <span className="ml-2 font-mono text-sm text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                    {experiments.length}
+                  </span>
+                </h3>
+                <Link href="/experiments/new">
+                  <Button size="sm" variant="outline" className="rounded-full bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 hover:text-emerald-300">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Log Result
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="relative z-10 flex-1 flex flex-col justify-center">
+                {experiments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FlaskConical className="w-10 h-10 mx-auto mb-3 text-white/20" />
+                    <p className="text-sm font-medium text-white/40">No experiments logged yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {comparisonData.length > 0 && (
+                      <div className="mb-6">
+                        <ResponsiveContainer width="100%" height={140}>
+                          <BarChart data={comparisonData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "monospace", fontWeight: "bold" }} axisLine={false} tickLine={false} dy={5} />
+                            <YAxis domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "monospace", fontWeight: "bold" }} axisLine={false} tickLine={false} />
+                            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
+                            <Legend wrapperStyle={{ fontSize: '11px', fontFamily: 'sans-serif', fontWeight: 'bold' }} />
+                            <Bar dataKey="Predicted" fill="#d946ef" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Measured" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    {experiments.map((exp: Experiment) => (
+                      <Link key={exp.id} href={`/experiments/${exp.id}`}>
+                        <div className="flex items-center justify-between p-4 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all cursor-pointer bg-black/40 group shadow-inner">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold mb-1">{exp.researcherName}</div>
+                            <div className="text-sm font-medium text-white/80">
+                              Activity: <span className="font-mono text-white font-bold">{(exp.measuredActivity * 100).toFixed(1)}%</span>
+                              <span className="mx-2 text-white/20">|</span>
+                              Yield: <span className="font-mono text-white font-bold">{(exp.measuredYield * 100).toFixed(1)}%</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] font-bold font-mono uppercase tracking-widest text-white/40 group-hover:text-emerald-300 transition-colors">
+                            <Clock className="w-3 h-3" />
+                            {new Date(exp.createdAt).toLocaleDateString()}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {new Date(exp.createdAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
