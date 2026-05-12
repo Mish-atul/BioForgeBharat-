@@ -1,44 +1,66 @@
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Link } from "wouter";
-import { ArrowRight, Hexagon, Component, Atom } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowRight, Hexagon, Component, Atom, Fingerprint } from "lucide-react";
 
 // --- Custom Components ---
 
-// A chemical bond/lattice abstract shape
-const ChemicalLattice = () => (
-  <svg viewBox="0 0 400 400" className="w-full h-full text-white/5 overflow-visible" fill="none" stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+// High-end abstract chemical reaction animation
+const AbstractReaction = () => (
+  <svg viewBox="0 0 600 600" className="w-full h-full text-white/10 overflow-visible mix-blend-screen" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+    <defs>
+      <filter id="ultra-glow">
+        <feGaussianBlur stdDeviation="12" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+    
+    {/* Orbiting rings */}
+    <motion.ellipse cx="300" cy="300" rx="250" ry="80" stroke="rgba(217,70,239,0.2)" strokeWidth="1" animate={{ rotateZ: 360, rotateX: 20 }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "center" }} />
+    <motion.ellipse cx="300" cy="300" rx="250" ry="80" stroke="rgba(6,182,212,0.2)" strokeWidth="1" animate={{ rotateZ: -360, rotateY: 30 }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "center" }} />
+
+    {/* Connecting bonds */}
     <motion.path 
-      d="M200 50 L350 125 L350 275 L200 350 L50 275 L50 125 Z" 
+      d="M 150 200 Q 300 100 450 200 T 300 500 T 150 200 Z" 
+      stroke="rgba(249,115,22,0.4)" 
+      strokeWidth="1.5"
+      filter="url(#ultra-glow)"
       initial={{ pathLength: 0, opacity: 0 }}
-      animate={{ pathLength: 1, opacity: 1 }}
-      transition={{ duration: 4, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }}
+      animate={{ pathLength: 1, opacity: 0.8 }}
+      transition={{ duration: 6, ease: "easeInOut", repeat: Infinity, repeatType: "mirror" }}
     />
     <motion.path 
-      d="M200 50 L200 200 M50 125 L200 200 M350 125 L200 200 M50 275 L200 200 M350 275 L200 200 M200 350 L200 200" 
+      d="M 200 400 Q 300 200 400 400 T 300 100 T 200 400 Z" 
+      stroke="rgba(6,182,212,0.4)" 
+      strokeWidth="1.5"
+      filter="url(#ultra-glow)"
       initial={{ pathLength: 0, opacity: 0 }}
-      animate={{ pathLength: 1, opacity: 0.5 }}
-      transition={{ duration: 4, ease: "easeInOut", repeat: Infinity, repeatType: "mirror", delay: 1 }}
+      animate={{ pathLength: 1, opacity: 0.8 }}
+      transition={{ duration: 8, ease: "easeInOut", repeat: Infinity, repeatType: "mirror", delay: 1 }}
     />
-    <circle cx="200" cy="50" r="4" fill="currentColor" />
-    <circle cx="350" cy="125" r="4" fill="currentColor" />
-    <circle cx="350" cy="275" r="4" fill="currentColor" />
-    <circle cx="200" cy="350" r="4" fill="currentColor" />
-    <circle cx="50" cy="275" r="4" fill="currentColor" />
-    <circle cx="50" cy="125" r="4" fill="currentColor" />
-    <circle cx="200" cy="200" r="6" fill="currentColor" />
+
+    {/* Nodes */}
+    {[
+      {x: 150, y: 200, c: "#d946ef"}, {x: 450, y: 200, c: "#06b6d4"}, 
+      {x: 300, y: 500, c: "#f97316"}, {x: 300, y: 100, c: "#8b5cf6"},
+      {x: 200, y: 400, c: "#06b6d4"}, {x: 400, y: 400, c: "#d946ef"}
+    ].map((node, i) => (
+      <motion.g key={i} animate={{ x: [0, Math.random()*20-10, 0], y: [0, Math.random()*20-10, 0] }} transition={{ duration: 4+i, repeat: Infinity, ease: "easeInOut" }}>
+        <circle cx={node.x} cy={node.y} r="12" fill={node.c} opacity="0.3" filter="url(#ultra-glow)" />
+        <circle cx={node.x} cy={node.y} r="4" fill="#fff" />
+      </motion.g>
+    ))}
   </svg>
 );
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 60, filter: "blur(20px)", scale: 0.9 },
+  hidden: { opacity: 0, y: 80, filter: "blur(20px)", scale: 0.85 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
     scale: 1,
     filter: "blur(0px)",
-    transition: { delay: i * 0.15, duration: 1.2, ease: [0.16, 1, 0.3, 1] },
+    transition: { delay: i * 0.15, duration: 1.4, ease: [0.16, 1, 0.3, 1] },
   }),
 };
 
@@ -51,18 +73,22 @@ export default function LandingPage() {
 
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 40, damping: 20 });
   const yHeroText = useTransform(smoothProgress, [0, 1], ["0%", "80%"]);
-  const yHeroVisual = useTransform(smoothProgress, [0, 1], ["0%", "40%"]);
-  const opacityHero = useTransform(smoothProgress, [0, 0.6], [1, 0]);
+  const yHeroVisual = useTransform(smoothProgress, [0, 1], ["0%", "50%"]);
+  const opacityHero = useTransform(smoothProgress, [0, 0.5], [1, 0]);
 
   return (
     <div
       ref={containerRef}
-      className="min-h-[100dvh] bg-[#110F1A] text-[#F8F9FA] selection:bg-fuchsia-500/40 selection:text-white overflow-hidden font-sans"
+      className="min-h-[100dvh] bg-[#110F1A] text-[#F8F9FA] selection:bg-indigo-500/40 selection:text-white overflow-hidden font-sans"
     >
-      {/* Cinematic Deep Space Background */}
+      {/* Deep Immersive Abstract Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#2A2045_0%,#110F1A_100%)] z-10" />
-        <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay z-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#2A2045_0%,#110F1A_80%)] z-10" />
+        <div className="absolute inset-0 opacity-[0.08] mix-blend-overlay z-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
+        
+        {/* Massive organic slow-moving gradients */}
+        <motion.div animate={{ rotate: 360, scale: [1, 1.1, 1] }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} className="absolute -top-[20%] -left-[20%] w-[80vw] h-[80vw] bg-indigo-600/20 blur-[150px] mix-blend-screen rounded-[40%_60%_70%_30%/40%_50%_60%_50%]" />
+        <motion.div animate={{ rotate: -360, scale: [1, 1.2, 1] }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} className="absolute top-[20%] -right-[10%] w-[60vw] h-[60vw] bg-fuchsia-600/20 blur-[140px] mix-blend-screen rounded-[60%_40%_30%_70%/60%_30%_70%_40%]" />
       </div>
 
       {/* Floating Minimalist Header */}
@@ -72,25 +98,30 @@ export default function LandingPage() {
         transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-8 left-8 right-8 z-50 flex items-center justify-between pointer-events-none"
       >
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <Atom className="w-8 h-8 text-fuchsia-400" />
-          <span className="text-xl font-serif font-black tracking-tight text-white drop-shadow-md">BioForgeBharat</span>
+        <div className="flex items-center gap-4 pointer-events-auto group cursor-pointer">
+          <div className="w-12 h-12 rounded-[1rem_0.5rem_1rem_0.5rem] bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-[1px] shadow-[0_0_30px_rgba(99,102,241,0.3)] group-hover:scale-110 transition-transform duration-700 ease-[0.22,1,0.36,1]">
+            <div className="w-full h-full rounded-[calc(1rem-1px)_calc(0.5rem-1px)_calc(1rem-1px)_calc(0.5rem-1px)] bg-[#110F1A] flex items-center justify-center">
+              <Atom className="w-6 h-6 text-indigo-300" />
+            </div>
+          </div>
+          <span className="text-2xl font-serif font-black tracking-tight text-white drop-shadow-md">BioForge</span>
         </div>
         <div className="pointer-events-auto">
           <Link href="/dashboard">
-            <button className="group relative px-6 py-3 rounded-full bg-white/5 backdrop-blur-xl border border-white/20 text-white font-bold tracking-widest text-xs uppercase overflow-hidden hover:bg-white/10 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-              <span className="relative z-10 flex items-center gap-3">
-                Open Sandbox
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <button className="group relative px-8 py-4 rounded-[1.5rem_0.5rem_1.5rem_0.5rem] bg-white/5 backdrop-blur-2xl border border-white/20 text-white font-bold tracking-[0.2em] text-xs uppercase overflow-hidden hover:bg-white/10 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.05)] active:scale-[0.98]">
+              <span className="relative z-10 flex items-center gap-4">
+                Initialize Console
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-500" />
               </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-fuchsia-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-[0.22,1,0.36,1]" />
             </button>
           </Link>
         </div>
       </motion.header>
 
-      {/* Hero Section - Asymmetrical & Futuristic */}
-      <section className="relative z-10 min-h-screen pt-32 pb-20 px-6 md:px-12 flex flex-col justify-center max-w-[1600px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      {/* Hero Section - Radical Asymmetry */}
+      <section className="relative z-10 min-h-screen pt-40 pb-20 px-6 md:px-12 flex flex-col justify-center max-w-[1800px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           
           {/* Left Text Content */}
           <motion.div 
@@ -102,10 +133,10 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               variants={fadeUp as any}
-              className="mb-8 inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-md shadow-[0_0_30px_rgba(99,102,241,0.2)]"
+              className="mb-10 inline-flex items-center gap-3 px-5 py-2 rounded-[1rem_0.5rem_1rem_0.5rem] bg-fuchsia-500/10 border border-fuchsia-500/30 backdrop-blur-md shadow-[0_0_40px_rgba(217,70,239,0.2)]"
             >
-              <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-              <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-indigo-300">Phase 3 Trials Active</span>
+              <Fingerprint className="w-4 h-4 text-fuchsia-400" />
+              <span className="text-xs font-mono font-bold uppercase tracking-[0.25em] text-fuchsia-300">Agentic Synthesis Core</span>
             </motion.div>
 
             <motion.h1
@@ -113,10 +144,10 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               variants={fadeUp as any}
-              className="text-6xl md:text-8xl lg:text-[7rem] font-serif font-black tracking-tighter leading-[0.95] drop-shadow-2xl text-white"
+              className="text-7xl md:text-9xl lg:text-[9rem] font-serif font-black tracking-tighter leading-[0.9] drop-shadow-2xl text-white"
             >
-              Design the <br />
-              <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-indigo-400 to-cyan-400">impossible.</span>
+              Computational <br />
+              <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-orange-400">Alchemy.</span>
             </motion.h1>
 
             <motion.p
@@ -124,9 +155,9 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               variants={fadeUp as any}
-              className="mt-8 text-xl md:text-2xl text-white/60 font-sans font-medium leading-relaxed max-w-2xl"
+              className="mt-10 text-2xl md:text-3xl text-white/60 font-sans font-medium leading-relaxed max-w-3xl"
             >
-              Move beyond trial-and-error. BioForgeBharat engineers autonomous agents to architect sustainable fuels and novel catalysts at computational speeds.
+              Engineer the next generation of biocatalysts and synthetic pathways. BioForgeBharat replaces physical trial-and-error with hyper-dimensional agentic modeling.
             </motion.p>
 
             <motion.div
@@ -134,58 +165,58 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               variants={fadeUp as any}
-              className="mt-12 flex items-center gap-6"
+              className="mt-16 flex items-center gap-6"
             >
               <Link href="/dashboard">
-                <button className="group relative flex items-center gap-4 bg-white text-[#110F1A] px-2 pl-8 py-2 rounded-full font-bold text-lg active:scale-[0.98] transition-transform duration-300 shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)]">
+                <button className="group relative flex items-center gap-6 bg-white text-[#110F1A] px-3 pl-10 py-3 rounded-[2rem_1rem_2rem_1rem] font-black text-xl active:scale-[0.95] transition-all duration-500 ease-[0.22,1,0.36,1] shadow-[0_20px_50px_rgba(255,255,255,0.2)] hover:shadow-[0_20px_80px_rgba(255,255,255,0.4)]">
                   Launch Environment
-                  <div className="w-12 h-12 rounded-full bg-[#110F1A]/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-[#110F1A]/20 transition-colors">
-                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  <div className="w-14 h-14 rounded-[1.2rem_0.6rem_1.2rem_0.6rem] bg-[#110F1A]/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-[#110F1A]/20 transition-colors">
+                    <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-500 ease-[0.22,1,0.36,1]" />
                   </div>
                 </button>
               </Link>
             </motion.div>
           </motion.div>
 
-          {/* Right Abstract Visual */}
+          {/* Right Abstract Cinematic Visual */}
           <motion.div 
             style={{ y: yHeroVisual, opacity: opacityHero }}
-            className="lg:col-span-5 relative h-[600px] w-full flex items-center justify-center pointer-events-none"
+            className="lg:col-span-5 relative h-[700px] w-full flex items-center justify-center pointer-events-none"
           >
-            {/* Holographic Glowing Orbs */}
-            <motion.div animate={{ rotate: 360, scale: [1, 1.2, 1] }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} className="absolute w-[400px] h-[400px] bg-fuchsia-600/30 rounded-full blur-[100px] mix-blend-screen" />
-            <motion.div animate={{ rotate: -360, scale: [1, 1.3, 1] }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} className="absolute w-[350px] h-[350px] bg-cyan-500/30 rounded-full blur-[90px] mix-blend-screen translate-x-20 translate-y-20" />
-            
-            {/* The Lattice */}
+            {/* The Dynamic Lattice */}
             <div className="absolute inset-0 z-10 scale-125">
-              <ChemicalLattice />
+              <AbstractReaction />
             </div>
 
-            {/* Floating Glass Panels */}
+            {/* Asymmetric Floating Glass Panels */}
             <motion.div 
-              animate={{ y: [0, -20, 0] }} 
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} 
-              className="absolute z-20 top-20 right-0 w-64 h-32 bg-white/5 backdrop-blur-2xl border border-white/20 rounded-[2rem] shadow-2xl p-6 flex flex-col justify-between"
+              animate={{ y: [0, -30, 0], rotate: [0, 2, 0] }} 
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} 
+              className="absolute z-20 top-20 -right-10 w-72 h-40 bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[3rem_1rem_3rem_1rem] shadow-[0_30px_60px_rgba(0,0,0,0.6)] p-8 flex flex-col justify-between"
             >
               <div className="flex justify-between items-center">
-                <Hexagon className="w-6 h-6 text-fuchsia-400" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">Binding Energy</span>
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center">
+                  <Hexagon className="w-5 h-5 text-indigo-400" />
+                </div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/40">Binding Energy</span>
               </div>
-              <div className="text-2xl font-mono font-bold text-white">-43.2 kcal/mol</div>
+              <div className="text-3xl font-mono font-black text-white drop-shadow-md">-43.2 <span className="text-sm font-sans text-white/40 font-bold">kcal/mol</span></div>
             </motion.div>
 
             <motion.div 
-              animate={{ y: [0, 30, 0] }} 
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }} 
-              className="absolute z-20 bottom-10 left-10 w-56 h-40 bg-white/5 backdrop-blur-2xl border border-white/20 rounded-[2rem] shadow-2xl p-6 flex flex-col justify-between"
+              animate={{ y: [0, 40, 0], rotate: [0, -3, 0] }} 
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }} 
+              className="absolute z-20 bottom-20 -left-10 w-80 h-48 bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[1rem_3rem_1rem_3rem] shadow-[0_30px_60px_rgba(0,0,0,0.6)] p-8 flex flex-col justify-between"
             >
-              <div className="flex justify-between items-center">
-                <Component className="w-6 h-6 text-cyan-400" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">PDC1 Expression</span>
+              <div className="flex justify-between items-center mb-4">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center">
+                  <Component className="w-5 h-5 text-cyan-400" />
+                </div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/40">PDC1 Expression</span>
               </div>
-              <div className="text-3xl font-mono font-bold text-cyan-400">+31%</div>
-              <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                <div className="w-[85%] h-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+              <div className="text-5xl font-mono font-black text-cyan-400 drop-shadow-lg mb-4">+31%</div>
+              <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden border border-white/5">
+                <div className="w-[85%] h-full bg-gradient-to-r from-cyan-600 to-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)] rounded-full" />
               </div>
             </motion.div>
 
@@ -194,48 +225,48 @@ export default function LandingPage() {
       </section>
 
       {/* Asymmetric Capabilities Grid */}
-      <section className="relative z-20 px-6 md:px-12 py-32 border-t border-white/10 bg-[#0F0C29]">
+      <section className="relative z-20 px-6 md:px-12 py-40 border-t border-white/5 bg-[#110F1A]">
         <div className="max-w-[1600px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[280px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 auto-rows-[350px]">
             
             {/* Header Block - spans 8 cols */}
             <div className="md:col-span-8 flex flex-col justify-center px-4 md:px-12">
-              <h2 className="text-4xl md:text-6xl font-serif font-black tracking-tight leading-[1.1]">
+              <h2 className="text-5xl md:text-7xl font-serif font-black tracking-tight leading-[1.05]">
                 Convergence of <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">biology & computation.</span>
+                <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">biology & computation.</span>
               </h2>
             </div>
 
             {/* Block 1 */}
             <motion.div 
-              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8 }}
-              className="md:col-span-4 md:row-span-2 rounded-[3rem] bg-white/[0.03] border border-white/10 p-10 relative overflow-hidden group hover:bg-white/[0.05] transition-colors"
+              initial={{ opacity: 0, y: 60, scale: 0.95 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="md:col-span-4 md:row-span-2 rounded-[3.5rem_1rem_3.5rem_1rem] bg-white/[0.02] border border-white/10 p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-colors duration-700 shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
             >
-              <div className="absolute top-0 right-0 w-[150%] h-[150%] bg-[radial-gradient(circle_at_top_right,rgba(217,70,239,0.15),transparent_50%)] pointer-events-none" />
+              <div className="absolute top-0 right-0 w-[150%] h-[150%] bg-[radial-gradient(circle_at_top_right,rgba(217,70,239,0.15),transparent_60%)] pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
               <div className="relative z-10 h-full flex flex-col">
-                <div className="w-14 h-14 rounded-2xl bg-fuchsia-500/20 border border-fuchsia-500/30 flex items-center justify-center mb-auto group-hover:scale-110 transition-transform duration-500">
-                  <Atom className="w-7 h-7 text-fuchsia-400" />
+                <div className="w-20 h-20 rounded-[1.5rem_0.5rem_1.5rem_0.5rem] bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center mb-auto group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-700 ease-[0.22,1,0.36,1] shadow-inner">
+                  <Atom className="w-10 h-10 text-fuchsia-400" />
                 </div>
-                <div className="mt-8">
-                  <h3 className="text-3xl font-bold font-serif mb-4 text-white">Generative Chemistry</h3>
-                  <p className="text-white/60 font-medium text-lg leading-relaxed">Agentic frameworks exploring unmapped chemical space for CO₂ reduction.</p>
+                <div className="mt-12">
+                  <h3 className="text-4xl font-black font-serif mb-6 text-white drop-shadow-md">Generative Chemistry</h3>
+                  <p className="text-white/50 font-sans font-medium text-xl leading-relaxed">Agentic frameworks exploring unmapped chemical space for sustainable CO₂ reduction and biofuel synthesis.</p>
                 </div>
               </div>
             </motion.div>
 
             {/* Block 2 */}
             <motion.div 
-              initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.1 }}
-              className="md:col-span-8 rounded-[3rem] bg-gradient-to-br from-blue-900/40 to-[#0F0C29] border border-white/10 p-10 relative overflow-hidden flex items-end group"
+              initial={{ opacity: 0, y: 60, scale: 0.95 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 1, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="md:col-span-8 rounded-[1rem_3.5rem_1rem_3.5rem] bg-gradient-to-br from-indigo-900/30 to-black/50 border border-white/10 p-12 relative overflow-hidden flex items-end group shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
             >
-              <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-700" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-              <div className="relative z-10 w-full flex justify-between items-end">
-                <div className="max-w-xl">
-                  <h3 className="text-3xl font-bold font-serif mb-4 text-white">Pathway Architecture</h3>
-                  <p className="text-white/60 font-medium text-lg leading-relaxed">Designing complex enzyme cascades using LLMs fine-tuned on metabolic databases.</p>
+              <div className="absolute inset-0 opacity-10 group-hover:opacity-30 transition-opacity duration-1000" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+              <div className="relative z-10 w-full flex flex-col md:flex-row justify-between items-end gap-10">
+                <div className="max-w-2xl">
+                  <h3 className="text-4xl font-black font-serif mb-6 text-white drop-shadow-md">Pathway Architecture</h3>
+                  <p className="text-white/50 font-sans font-medium text-xl leading-relaxed">Designing complex enzyme cascades using large language models fine-tuned on profound metabolic databases.</p>
                 </div>
-                <div className="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)] group-hover:scale-110 transition-transform cursor-pointer">
-                  <ArrowRight className="w-6 h-6 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                <div className="w-20 h-20 rounded-[1.5rem_0.5rem_1.5rem_0.5rem] bg-indigo-500 text-white flex items-center justify-center shadow-[0_0_40px_rgba(99,102,241,0.6)] group-hover:scale-110 group-hover:rotate-0 -rotate-45 transition-all duration-700 ease-[0.22,1,0.36,1] cursor-pointer">
+                  <ArrowRight className="w-8 h-8" />
                 </div>
               </div>
             </motion.div>
@@ -245,9 +276,9 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/10 bg-[#0A0815] text-center">
-        <p className="text-white/40 font-mono text-sm tracking-widest uppercase font-bold">
-          Engineered for <span className="text-white/80">GPS Renewables OpenEnv Hackathon 2026</span>
+      <footer className="py-16 border-t border-white/5 bg-[#0A0815] text-center">
+        <p className="text-white/30 font-mono text-xs tracking-[0.3em] uppercase font-bold">
+          Engineered for <span className="text-fuchsia-500/80">GPS Renewables OpenEnv Hackathon 2026</span>
         </p>
       </footer>
     </div>
