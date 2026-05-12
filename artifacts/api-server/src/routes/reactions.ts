@@ -1,6 +1,13 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { reactionsTable, candidatesTable, experimentsTable, annotationsTable } from "@workspace/db";
+import {
+  reactionsTable,
+  candidatesTable,
+  experimentsTable,
+  annotationsTable,
+  discoveryRunsTable,
+  discoveryEventsTable,
+} from "@workspace/db";
 import { eq, ne, and, inArray, asc, desc, type SQL } from "drizzle-orm";
 import { CreateReactionBody, GenerateCandidatesBody, UpdateReactionBody } from "@workspace/api-zod";
 import {
@@ -9,6 +16,8 @@ import {
   fetchPubChemByName,
 } from "../lib/cheminformatics";
 import { generateDiscoveryCandidates } from "../lib/discovery-ai";
+import { buildCandidateReadiness } from "../lib/sustainability";
+import { runCrewRecommendation } from "../lib/crew-recommendation";
 
 const router = Router();
 
@@ -221,37 +230,48 @@ router.post("/reactions/:id/generate-candidates", async (req, res) => {
       .where(eq(candidatesTable.reactionId, reactionId));
 
     // Insert candidates immediately WITHOUT waiting for cheminformatics
-    const insertData = aiCandidates.map((c, i) => ({
-      reactionId,
-      name: c.name,
-      formula: c.formula,
-      source: "generated" as const,
-      sourceDb: null,
-      candidateType: c.candidateType,
-      routeType: c.routeType,
-      predictedActivity: c.predictedActivity,
-      predictedSelectivity: c.predictedSelectivity,
-      predictedStability: c.predictedStability,
-      confidenceScore: c.confidenceScore,
-      feedstockFitScore: c.feedstockFitScore,
-      costScore: c.costScore,
-      sustainabilityScore: c.sustainabilityScore,
-      scalabilityScore: c.scalabilityScore,
-      uncertaintyScore: c.uncertaintyScore,
-      mechanismText: c.mechanismText,
-      structureData: c.structureData,
-      evidenceText: c.evidenceText,
-      energyProfileData: c.energyProfileData,
-      pathwayData: c.pathwayData,
-      rank: existingCount.length + i + 1,
-      pubchemCid: null,
-      chemblId: null,
-      molecularWeight: null,
-      logP: null,
-      tpsa: null,
-      canonicalSmiles: null,
-      iupacName: null,
-    }));
+    const insertData = await Promise.all(
+      aiCandidates.map(async (c, i) => ({
+        reactionId,
+        name: c.name,
+        formula: c.formula,
+        source: "generated" as const,
+        sourceDb: null,
+        candidateType: c.candidateType,
+        routeType: c.routeType,
+        predictedActivity: c.predictedActivity,
+        predictedSelectivity: c.predictedSelectivity,
+        predictedStability: c.predictedStability,
+        confidenceScore: c.confidenceScore,
+        feedstockFitScore: c.feedstockFitScore,
+        costScore: c.costScore,
+        sustainabilityScore: c.sustainabilityScore,
+        scalabilityScore: c.scalabilityScore,
+        uncertaintyScore: c.uncertaintyScore,
+        mechanismText: c.mechanismText,
+        structureData: c.structureData,
+        evidenceText: c.evidenceText,
+        energyProfileData: c.energyProfileData,
+        pathwayData: c.pathwayData,
+        rank: existingCount.length + i + 1,
+        pubchemCid: null,
+        chemblId: null,
+        molecularWeight: null,
+        logP: null,
+        tpsa: null,
+        canonicalSmiles: null,
+        iupacName: null,
+        ...(await buildCandidateReadiness(reaction, {
+          name: c.name,
+          formula: c.formula,
+          candidateType: c.candidateType,
+          predictedActivity: c.predictedActivity,
+          predictedSelectivity: c.predictedSelectivity,
+          predictedStability: c.predictedStability,
+          sustainabilityScore: c.sustainabilityScore,
+        })),
+      })),
+    );
 
     const inserted = await db.insert(candidatesTable).values(insertData).returning();
     res.json(inserted);
@@ -432,11 +452,301 @@ router.post("/reactions/:id/search-candidates", async (req, res) => {
       return;
     }
 
-    const inserted = await db.insert(candidatesTable).values(inserts).returning();
+    const enrichedInserts = await Promise.all(
+      inserts.map(async (row) => ({
+        ...row,
+        ...(await buildCandidateReadiness(reaction, {
+          name: row.name,
+          formula: row.formula,
+          candidateType: row.candidateType ?? null,
+          predictedActivity: row.predictedActivity,
+          predictedSelectivity: row.predictedSelectivity,
+          predictedStability: row.predictedStability,
+          sustainabilityScore: row.sustainabilityScore ?? null,
+        })),
+      })),
+    );
+
+    const inserted = await db.insert(candidatesTable).values(enrichedInserts).returning();
     res.json({ query, sourcesQueried, candidates: inserted });
   } catch (err) {
     req.log.error({ err }, "Failed to search candidates");
     res.status(500).json({ error: "Failed to search candidates" });
+  }
+});
+
+router.get("/reactions/:id/agent-runs/latest", async (req, res) => {
+  try {
+    const reactionId = Number(req.params.id);
+    const [run] = await db
+      .select()
+      .from(discoveryRunsTable)
+      .where(eq(discoveryRunsTable.reactionId, reactionId))
+      .orderBy(desc(discoveryRunsTable.startedAt))
+      .limit(1);
+    if (!run) {
+      res.json(null);
+      return;
+    }
+    const events = await db
+      .select()
+      .from(discoveryEventsTable)
+      .where(eq(discoveryEventsTable.runId, run.id))
+      .orderBy(discoveryEventsTable.createdAt);
+    res.json({ run, events });
+  } catch (err) {
+    req.log.error({ err }, "Failed to fetch latest discovery run");
+    res.status(500).json({ error: "Failed to fetch discovery run" });
+  }
+});
+
+router.post("/reactions/:id/agent-run", async (req, res) => {
+  const writeEvent = (event: string, data: unknown) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  let runId: number | null = null;
+  try {
+    const reactionId = Number(req.params.id);
+    const [reaction] = await db.select().from(reactionsTable).where(eq(reactionsTable.id, reactionId));
+    if (!reaction) {
+      res.status(404).json({ error: "Reaction not found" });
+      return;
+    }
+    const requestedCount = Number(req.body?.count ?? 5);
+    const count = Number.isFinite(requestedCount) ? Math.min(Math.max(requestedCount, 3), 8) : 5;
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    const [run] = await db
+      .insert(discoveryRunsTable)
+      .values({ reactionId, status: "running" })
+      .returning();
+    runId = run.id;
+
+    const emit = async (stage: string, message: string, payload?: unknown) => {
+      const [event] = await db
+        .insert(discoveryEventsTable)
+        .values({
+          runId: run.id,
+          stage,
+          message,
+          payload: payload == null ? null : JSON.stringify(payload),
+        })
+        .returning();
+      writeEvent("update", {
+        id: event.id,
+        runId: run.id,
+        stage,
+        message,
+        payload: payload ?? null,
+        createdAt: event.createdAt.toISOString(),
+      });
+    };
+
+    await emit("context", "Loaded reaction context and feedstock constraints.", {
+      reactionId,
+      targetProduct: reaction.targetProduct,
+      domain: reaction.domain,
+    });
+
+    const [pubchem, chembl] = await Promise.all([
+      fetchPubChemByName(reaction.targetProduct),
+      searchChembl(reaction.targetProduct, 3),
+    ]);
+    await emit("literature", "Retrieved live reference evidence from PubChem and ChEMBL.", {
+      pubchemFound: Boolean(pubchem),
+      chemblHits: chembl.length,
+    });
+
+    await emit("design", `Generating ${count} ranked candidate designs through the active discovery pipeline.`);
+
+    const generated = await generateDiscoveryCandidates(reaction, count);
+    const existing = await db.select().from(candidatesTable).where(eq(candidatesTable.reactionId, reactionId));
+    const rows = await Promise.all(
+      generated.map(async (candidate, index) => ({
+        reactionId,
+        name: candidate.name,
+        formula: candidate.formula,
+        source: "generated" as const,
+        sourceDb: null,
+        candidateType: candidate.candidateType,
+        routeType: candidate.routeType,
+        predictedActivity: candidate.predictedActivity,
+        predictedSelectivity: candidate.predictedSelectivity,
+        predictedStability: candidate.predictedStability,
+        confidenceScore: candidate.confidenceScore,
+        feedstockFitScore: candidate.feedstockFitScore,
+        costScore: candidate.costScore,
+        sustainabilityScore: candidate.sustainabilityScore,
+        scalabilityScore: candidate.scalabilityScore,
+        uncertaintyScore: candidate.uncertaintyScore,
+        mechanismText: candidate.mechanismText,
+        structureData: candidate.structureData,
+        evidenceText: candidate.evidenceText,
+        energyProfileData: candidate.energyProfileData,
+        pathwayData: candidate.pathwayData,
+        rank: existing.length + index + 1,
+        ...(await buildCandidateReadiness(reaction, {
+          name: candidate.name,
+          formula: candidate.formula,
+          candidateType: candidate.candidateType,
+          predictedActivity: candidate.predictedActivity,
+          predictedSelectivity: candidate.predictedSelectivity,
+          predictedStability: candidate.predictedStability,
+          sustainabilityScore: candidate.sustainabilityScore,
+        })),
+      })),
+    );
+    const inserted = await db.insert(candidatesTable).values(rows).returning();
+    const topCandidate = [...inserted].sort((a, b) => (b.compositeScore ?? 0) - (a.compositeScore ?? 0))[0];
+
+    await emit("screening", "Scored climate impact, toxicity, recyclability, scale-up, and commercial readiness.", {
+      created: inserted.length,
+    });
+    await emit("groq", "Asking Groq to select the strongest shortlist candidate from the evidence and scoring context.");
+
+    const recommendation = await runCrewRecommendation({
+      reaction,
+      candidates: inserted,
+      evidence: {
+        pubchemFound: Boolean(pubchem),
+        pubchemName: pubchem?.iupacName ?? null,
+        chemblHits: chembl.length,
+        chemblNames: chembl.map((hit) => hit.prefName ?? hit.chemblId),
+      },
+    });
+
+    let chosenCandidate = inserted.find((candidate) => candidate.name === recommendation.winner_name) ?? null;
+    const proposed = recommendation.proposed_candidate;
+    if (!chosenCandidate && recommendation.reject_all && proposed?.name && proposed?.formula) {
+      const score = (value: unknown, fallback: number) => {
+        const n = typeof value === "number" ? value : Number(value);
+        return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : fallback;
+      };
+      const proposedCandidate = {
+        reactionId,
+        name: proposed.name,
+        formula: proposed.formula,
+        source: "groq-recommended",
+        sourceDb: "groq",
+        candidateType: proposed.candidateType ?? (reaction.domain === "synthetic-biology" ? "microbial-pathway" : "heterogeneous-catalyst"),
+        routeType: proposed.routeType ?? (reaction.domain === "synthetic-biology" ? "synthetic-biology" : "chemical-catalysis"),
+        predictedActivity: score(proposed.predictedActivity, 0.78),
+        predictedSelectivity: score(proposed.predictedSelectivity, 0.78),
+        predictedStability: score(proposed.predictedStability, 0.74),
+        confidenceScore: score(proposed.confidenceScore, 0.68),
+        feedstockFitScore: score(proposed.feedstockFitScore, 0.75),
+        costScore: score(proposed.costScore, 0.65),
+        sustainabilityScore: score(proposed.sustainabilityScore, 0.78),
+        scalabilityScore: score(proposed.scalabilityScore, 0.7),
+        uncertaintyScore: score(proposed.uncertaintyScore, 0.28),
+        mechanismText: proposed.mechanismText ?? recommendation.why_this_candidate,
+        structureData: JSON.stringify({
+          nodes: [
+            { id: "mechanism", x: 40, y: 70 },
+            { id: "active-site", x: 145, y: 70 },
+            { id: "product", x: 250, y: 70 },
+          ],
+          edges: [
+            { from: "mechanism", to: "active-site" },
+            { from: "active-site", to: "product" },
+          ],
+        }),
+        evidenceText: proposed.evidenceText ?? recommendation.recommendation,
+        energyProfileData:
+          reaction.domain === "synthetic-biology"
+            ? null
+            : JSON.stringify({
+                steps: [
+                  { label: "Reactants", energy: 0 },
+                  { label: "Activated intermediate", energy: 0.34 },
+                  { label: "Rate-limiting transition", energy: 0.58 },
+                  { label: reaction.targetProduct, energy: -0.21 },
+                ],
+              }),
+        pathwayData:
+          reaction.domain === "synthetic-biology"
+            ? JSON.stringify({
+                nodes: [
+                  { id: "feedstock", label: "Feedstock", flux: 100 },
+                  { id: "pathway", label: "Engineered pathway", flux: 76 },
+                  { id: "product", label: reaction.targetProduct, flux: 62 },
+                ],
+                edits: ["Mechanism-compatible route proposed by Groq"],
+                bottlenecks: ["Needs experimental validation"],
+              })
+            : null,
+        rank: existing.length + inserted.length + 1,
+        ...(await buildCandidateReadiness(reaction, {
+          name: proposed.name,
+          formula: proposed.formula,
+          candidateType: proposed.candidateType ?? null,
+          predictedActivity: score(proposed.predictedActivity, 0.78),
+          predictedSelectivity: score(proposed.predictedSelectivity, 0.78),
+          predictedStability: score(proposed.predictedStability, 0.74),
+          sustainabilityScore: score(proposed.sustainabilityScore, 0.78),
+        })),
+      };
+      [chosenCandidate] = await db.insert(candidatesTable).values(proposedCandidate).returning();
+    }
+    chosenCandidate ??= topCandidate;
+
+    await emit(
+      "recommendation",
+      recommendation.reject_all && proposed?.name
+        ? `Groq proposed a mechanism-compatible catalyst: ${proposed.name}.`
+        : recommendation.reject_all
+        ? "Groq found no scientifically compatible catalyst in the current shortlist."
+        : `Groq recommendation selected ${recommendation.winner_name}.`,
+      recommendation,
+    );
+
+    const summary = recommendation.reject_all && proposed?.name
+      ? `Created ${inserted.length} discovery candidates. Groq proposed mechanism-compatible winner: ${proposed.name} (${recommendation.confidence} confidence).`
+      : recommendation.reject_all
+      ? `Created ${inserted.length} discovery candidates. Groq rejected the shortlist as mechanistically incompatible.`
+      : `Created ${inserted.length} discovery candidates. Groq winner: ${recommendation.winner_name} (${recommendation.confidence} confidence).`;
+    await db
+      .update(discoveryRunsTable)
+      .set({
+        status: "completed",
+        topCandidateId: chosenCandidate?.id ?? null,
+        summary,
+        completedAt: new Date(),
+      })
+      .where(eq(discoveryRunsTable.id, run.id));
+
+    writeEvent("complete", {
+      runId: run.id,
+      reactionId,
+      summary,
+      created: inserted.length,
+      topCandidateId: chosenCandidate?.id ?? null,
+      topCandidateName: chosenCandidate?.name ?? recommendation.winner_name,
+      recommendation,
+    });
+    res.end();
+  } catch (err) {
+    req.log.error({ err }, "Failed to run discovery agent");
+    const errorMessage = err instanceof Error ? err.message : "Discovery run failed before completion.";
+    if (runId != null) {
+      await db
+        .update(discoveryRunsTable)
+        .set({ status: "failed", summary: errorMessage.slice(0, 500), completedAt: new Date() })
+        .where(eq(discoveryRunsTable.id, runId))
+        .catch(() => undefined);
+    }
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Failed to run discovery agent" });
+      return;
+    }
+    writeEvent("error", { message: errorMessage });
+    res.end();
   }
 });
 

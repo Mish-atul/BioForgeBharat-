@@ -1,128 +1,307 @@
-# 🧬 BioForgeBharat
+# BioForgeBharat
 
-**AI-Powered Reaction Engineering & Sustainable Catalyst Discovery**
+AI-powered reaction engineering and sustainable catalyst discovery platform.
 
-BioForgeBharat is a next-generation platform designed to accelerate the discovery of catalysts and enzymes for sustainable chemical processes. By integrating Large Language Models (LLMs) with traditional Machine Learning and Cheminformatics, BioForgeBharat provides researchers with a powerful suite of tools to design, simulate, and optimize novel chemical reactions.
+BioForgeBharat helps researchers discover, compare, and validate catalysts, enzymes, and bioprocess routes for sustainable chemical production. It combines a React dashboard, an Express API, PostgreSQL persistence, ML virtual screening, PubChem/ChEMBL lookup, Gemini-assisted generation, and a Groq-powered discovery recommender.
 
----
+## What It Does
 
-## 🚀 Key Features
+BioForgeBharat is built around a practical R&D workflow:
 
-### 1. **AI-Driven Candidate Generation**
-*   **Novel Designs**: Leverage Google Gemini to generate completely new catalyst and enzyme candidates for specific reactions like Ethanol-to-Jet fuel or CO₂ reduction.
-*   **Evidence-Based**: AI provides mechanism text and evidence-based reasoning for each generated candidate..
+1. Create or open a reaction.
+2. Search known chemistry/biology references from PubChem and ChEMBL.
+3. Generate candidate catalysts or bioprocess designs.
+4. Score candidates for activity, selectivity, stability, cost, sustainability, toxicity, scale-up, and uncertainty.
+5. Run the Discovery Agent.
+6. Let Groq classify the process and recommend the best mechanism-compatible catalyst.
+7. Save candidate data, discovery events, experiments, and recommendation history in PostgreSQL.
 
-### 2. **Automated Literature Search**
-*   **External Integration**: Seamlessly search **PubChem** and **ChEMBL** to import known literature candidates directly into your project.
-*   **Metadata Extraction**: Automatically extracts chemical formulas, SMILES, molecular weight, and physicochemical properties.
+## Key Features
 
-### 3. **Real-Time ML Forecasting**
-*   **Predictive Analytics**: Uses a Ridge Regression model to forecast activity, selectivity, and stability for any catalyst configuration.
-*   **Edge Inference**: ML weights are exported from Python and run directly in the Node.js backend for ultra-fast predictions.
+### Reaction Workspace
 
-### 4. **Experimental Feedback Loop**
-*   **Result Logging**: Log actual experimental outcomes and compare them against AI predictions.
-*   **Discrepancy Analysis**: AI-generated hypotheses explain why an experiment differed from the model's prediction.
-*   **Active Learning**: Trigger model retraining based on new experimental data to improve future accuracy.
+- Create and manage reaction records.
+- Track equation, target product, operating conditions, domain, feedstock context, and process notes.
+- View generated and literature-sourced candidates for each reaction.
 
-### 5. **Cheminformatics & Visualization**
-*   **Reaction Path Mapping**: Visualize energy profiles and reaction pathways.
-*   **Interactive Dashboards**: Real-time stats on reaction counts, candidates distribution, and prediction accuracy.
+### Candidate Discovery
 
----
+- Uses local ML virtual screening as the first candidate-generation layer.
+- Falls back to Gemini-assisted generation when needed.
+- Falls back again to a curated expert pool if external AI is unavailable.
+- Stores every generated candidate in PostgreSQL with scores and metadata.
 
-## 🛠️ Technology Stack
+### Groq Discovery Agent
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | React, Vite, Tailwind CSS, Framer Motion, Recharts, Lucide Icons |
-| **Backend** | Node.js, Express, TypeScript |
-| **Database** | PostgreSQL, Drizzle ORM |
-| **AI/LLM** | Google Gemini API |
-| **Machine Learning** | Scikit-learn (Ridge Regression), Pandas, Numpy |
-| **Package Management** | pnpm workspaces |
+The Discovery Agent is the main agentic workflow in the app.
 
----
-
-## 📂 Project Structure
+When you click Run Discovery Agent, the backend streams progress events to the UI:
 
 ```text
-BioForgeBharat/
-├── artifacts/
-│   ├── api-server/        # Express backend
-│   ├── catalyst-ai/       # Vite/React frontend
-│   └── ...                # Mockups and pitch decks
-├── lib/
-│   ├── db/                # Drizzle schema and migrations
-│   ├── api-spec/          # OpenAPI/Swagger definition
-│   └── api-zod/           # Auto-generated Zod schemas
-├── ml_pipeline/           # Python training scripts and datasets
-├── train_ml.py            # Main ML training and weight export script
-└── package.json           # Root workspace configuration
+start -> context -> literature -> design -> screening -> groq -> recommendation -> complete
 ```
 
----
+The Groq recommender now uses a two-stage architecture:
 
-## ⚙️ Local Setup
+**Stage 1: Reaction Understanding**
 
-### Prerequisites
-- Node.js (v20+)
-- pnpm (v10+)
-- PostgreSQL (running locally or on a cloud provider)
+Groq first determines:
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/Mish-atul/BioForgeBharat-.git
-cd BioForgeBharat-
+- reaction class
+- process type: biological, thermochemical, electrochemical, photocatalytic, or hybrid
+- realistic operating regime
+- main conversion mechanism
+- compatible candidate classes
+- rejection rules for incompatible candidates
+
+**Stage 2: Mechanism-Compatible Recommendation**
+
+Groq then ranks candidates only within compatible mechanism classes. A candidate is penalized or rejected if:
+
+- its active temperature window is incompatible
+- its mechanism does not participate in the governing reaction pathway
+- it conflicts with microbial viability
+- it is industrially unrealistic for the stated process
+
+If the generated shortlist is poor, Groq can propose a new mechanism-compatible catalyst or biocatalyst. The backend saves that proposed candidate with:
+
+```text
+source = groq-recommended
+sourceDb = groq
 ```
 
-### 2. Install Dependencies
-```bash
-pnpm install
+So the system does not just stop at "no compatible catalyst." It can produce a better recommendation.
+
+### Literature Retrieval
+
+- PubChem lookup for compound identity and chemical metadata.
+- ChEMBL search for known bioactivity/reference candidates.
+- Retrieved evidence is passed into the Discovery Agent so the final recommendation has external context.
+
+### Sustainability and Readiness Scoring
+
+Each candidate can include:
+
+- CO2 avoided per tonne
+- SDG tags
+- climate narrative
+- toxicity score and toxicity notes
+- recycling retention curve
+- reactor sizing estimate
+- cost tier and cost rationale
+- ZLD compatibility
+- composite readiness score
+- uncertainty estimates
+
+### Experiment Feedback Loop
+
+- Log measured experimental outcomes.
+- Compare predicted vs measured activity, selectivity, and yield.
+- Generate discrepancy hypotheses.
+- Mark records for retraining and future model improvement.
+
+### Comparison View
+
+- Compare shortlisted candidates side by side.
+- Useful for design reviews and pitch/demo workflows.
+- Helps explain why one catalyst is more viable than another.
+
+### Persistent Discovery Runs
+
+Discovery Agent runs are saved in PostgreSQL:
+
+- run status
+- step-by-step streamed events
+- top candidate / proposed candidate
+- summary
+- timestamps
+
+When you revisit a reaction, the latest discovery run can be reloaded instead of disappearing after the page refreshes.
+
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | React, Vite, TypeScript, Tailwind CSS, Framer Motion, Recharts, Lucide |
+| Backend | Node.js, Express, TypeScript |
+| Database | PostgreSQL, Drizzle ORM |
+| AI generation | Gemini API |
+| AI recommendation | Groq API |
+| ML | Local virtual screening model plus Python training/export scripts |
+| External data | PubChem, ChEMBL |
+| Package manager | pnpm workspaces |
+
+## Project Structure
+
+```text
+BioForgeBharat-/
+  artifacts/
+    api-server/          Express API server
+    catalyst-ai/         React/Vite frontend
+  lib/
+    db/                  Drizzle schema and database package
+    api-zod/             Shared API validation schemas
+    api-spec/            API specification files
+  scripts/
+    discovery_crew.py    Groq recommendation runtime
+  ml_pipeline/           ML training assets
+  docker-compose.yml     Local PostgreSQL service
+  .env.example           Example environment variables
+  package.json           pnpm workspace root
 ```
 
-### 3. Database Setup
-Create a PostgreSQL database and set the connection string:
-```bash
-# Set your DATABASE_URL environment variable
-export DATABASE_URL=postgres://user:password@localhost:5432/bioforgebharat
+## Environment Variables
 
-# Push the schema and seed the database
-pnpm --filter @workspace/db run push
-pnpm --filter @workspace/api-server run seed
-```
+Create a `.env` file from `.env.example` or set these values directly in your terminal:
 
-### 4. Environment Variables
-Create a `.env` file in the root or set these in your terminal:
-```bash
+```env
 PORT=8080
-DATABASE_URL=postgres://localhost/bioforgebharat
-GEMINI_API_KEY=your_gemini_api_key_here  # Optional: falls back to synthetic data
+DATABASE_URL=postgres://bioforge:bioforge@localhost:5432/bioforgebharat
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=groq/llama-3.3-70b-versatile
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
-### 5. Run the Application
-Start both the API and Frontend:
-```bash
-# Start API (Port 8080)
-pnpm --filter @workspace/api-server run dev
+Notes:
 
-# Start Frontend (in a new terminal)
-pnpm --filter @workspace/catalyst-ai run dev
+- `GROQ_API_KEY` is required for the final Discovery Agent recommendation.
+- `GEMINI_API_KEY` improves AI generation and narratives, but the app has fallbacks.
+- If you change environment variables, restart the backend terminal.
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js 20+
+- Corepack enabled
+- pnpm 10+
+- Python 3.12 through `uv` for the Groq recommender runtime
+- Docker Desktop for easiest PostgreSQL setup, or your own PostgreSQL instance
+
+### Install Node Dependencies
+
+```cmd
+cd C:\Users\janan\BioForgeBharat-
+corepack pnpm install
 ```
 
----
+### Start PostgreSQL
 
-## 🚢 Deployment
+If Docker Desktop is running:
 
-The project is optimized for split deployment:
-- **API**: Render Web Service
-- **Database**: Render PostgreSQL
-- **Frontend**: Vercel or Netlify (Static build)
+```cmd
+corepack pnpm run db:up
+```
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed production instructions.
+Then push the schema and seed data:
 
----
+```cmd
+set DATABASE_URL=postgres://bioforge:bioforge@localhost:5432/bioforgebharat
+corepack pnpm --filter @workspace/db run push
+corepack pnpm --filter @workspace/api-server run seed
+```
 
-## 📜 License
-This project is licensed under the MIT License.
+If Docker is not available, create a PostgreSQL database yourself and set `DATABASE_URL` to that connection string.
+
+### Build Groq Python Runtime
+
+The repo uses a local Python environment named `.venv-crewai` for historical reasons, but the current recommendation path calls Groq directly.
+
+```cmd
+uv python install 3.12
+uv venv --python 3.12 .venv-crewai
+uv pip install --python .\.venv-crewai\Scripts\python.exe groq json-repair
+```
+
+## Run The App
+
+Use two terminals.
+
+### Terminal 1: API
+
+```cmd
+cd C:\Users\janan\BioForgeBharat-
+set PORT=8081
+set DATABASE_URL=postgres://bioforge:bioforge@localhost:5432/bioforgebharat
+set GEMINI_API_KEY=your_gemini_key_here
+set GROQ_API_KEY=your_groq_key_here
+set GROQ_MODEL=groq/llama-3.3-70b-versatile
+corepack pnpm --filter @workspace/api-server run build
+corepack pnpm --filter @workspace/api-server run start
+```
+
+### Terminal 2: Frontend
+
+```cmd
+cd C:\Users\janan\BioForgeBharat-
+set VITE_API_BASE_URL=http://localhost:8081
+corepack pnpm --filter @workspace/catalyst-ai run dev
+```
+
+Open the Vite URL shown in the frontend terminal.
+
+## Discovery Agent User Flow
+
+1. Open the frontend.
+2. Go to a reaction detail page.
+3. Click Run Discovery Agent.
+4. Watch the streamed log:
+
+```text
+contextLoaded
+literatureRetrieved
+designGenerating
+screening
+groq
+recommendation
+complete
+```
+
+5. Review the recommended catalyst or Groq-proposed catalyst.
+6. Open candidate detail pages for mechanism, sustainability, toxicity, reactor, and uncertainty panels.
+7. Use the compare page to evaluate candidates side by side.
+
+## Important Runtime Notes
+
+If you see `EADDRINUSE`, the backend port is already in use. Change `PORT` to another value, for example:
+
+```cmd
+set PORT=8082
+```
+
+and set the frontend to match:
+
+```cmd
+set VITE_API_BASE_URL=http://localhost:8082
+```
+
+If Groq returns `429`, your Groq account has hit a temporary rate limit. Wait and rerun.
+
+If the Discovery Agent says Groq proposed a catalyst, that means the generated shortlist was not mechanism-compatible enough, so Groq created a better candidate and the backend saved it.
+
+## Useful Commands
+
+```cmd
+corepack pnpm run db:up
+corepack pnpm run db:down
+corepack pnpm --filter @workspace/db run push
+corepack pnpm --filter @workspace/api-server run seed
+corepack pnpm --filter @workspace/api-server run typecheck
+corepack pnpm --filter @workspace/catalyst-ai run typecheck
+```
+
+## Deployment
+
+The project is designed for split deployment:
+
+- API: Render or another Node hosting service
+- Database: PostgreSQL
+- Frontend: Vercel, Netlify, or another static hosting service
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment notes.
+
+## License
+
+MIT
