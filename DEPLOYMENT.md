@@ -33,9 +33,18 @@ Environment variables:
 ```bash
 DATABASE_URL=<render-postgres-internal-url>
 GEMINI_API_KEY=<your-gemini-api-key>
+GROQ_API_KEY=<your-groq-api-key>
 NODE_ENV=production
 PORT=8080
 ```
+
+Optional:
+
+```bash
+GROQ_MODEL=llama-3.3-70b-versatile
+```
+
+The discovery agent (`POST /api/reactions/:id/agent-run`) calls Groq from Node (no Python on the server). `GROQ_MODEL` defaults if omitted.
 
 Health check path:
 
