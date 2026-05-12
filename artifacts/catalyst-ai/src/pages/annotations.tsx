@@ -23,8 +23,8 @@ import { cn } from "@/lib/utils";
 
 // --- Glass Card Component ---
 const GlassCard = ({ children, className }: { children: React.ReactNode, className?: string }) => (
-  <div className={cn("p-1.5 rounded-[2rem] bg-white/[0.04] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] group", className)}>
-    <div className="h-full w-full rounded-[calc(2rem-0.375rem)] bg-[#080310]/90 backdrop-blur-3xl border border-white/10 p-6 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+  <div className={cn("p-1.5 rounded-[2rem] bg-white/[0.04] border border-white/50 shadow-[0_0_30px_rgba(0,0,0,0.5)] group", className)}>
+    <div className="h-full w-full rounded-[calc(2rem-0.375rem)] bg-white/60 backdrop-blur-3xl border border-white/50 p-6 relative overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
       {children}
     </div>
   </div>
@@ -98,19 +98,19 @@ export default function Annotations() {
             <Database className="w-4 h-4 animate-pulse" />
             Knowledge Base
           </div>
-          <h1 className="text-5xl font-serif font-black tracking-tight text-white mb-2 drop-shadow-lg">Annotations</h1>
-          <p className="text-lg text-white/60 max-w-xl font-medium">Team knowledge base — observations, hypotheses, and insights.</p>
+          <h1 className="text-5xl font-serif font-black tracking-tight text-slate-900 mb-2 drop-shadow-lg">Annotations</h1>
+          <p className="text-lg text-slate-900/60 max-w-xl font-medium">Team knowledge base — observations, hypotheses, and insights.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-gradient-to-r from-yellow-600 to-orange-500 text-white rounded-full px-8 py-6 font-bold shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all text-black">
+            <Button className="gap-2 bg-gradient-to-r from-yellow-600 to-orange-500 text-slate-900 rounded-full px-8 py-6 font-bold shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all text-black">
               <Plus className="w-5 h-5 text-black" />
               Add Annotation
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] bg-[#0F0C29]/95 backdrop-blur-3xl border-white/20 text-white rounded-[2rem] shadow-2xl">
+          <DialogContent className="sm:max-w-[500px] bg-[#0F0C29]/95 backdrop-blur-3xl border-white/60 text-slate-900 rounded-[2rem] shadow-2xl">
             <DialogHeader>
-              <DialogTitle className="text-3xl font-serif font-bold text-white mb-2">New Annotation</DialogTitle>
+              <DialogTitle className="text-3xl font-serif font-bold text-slate-900 mb-2">New Annotation</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -119,11 +119,11 @@ export default function Annotations() {
                   name="experimentId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/70">Experiment</FormLabel>
+                      <FormLabel className="text-slate-900/70">Experiment</FormLabel>
                       <FormControl>
                         <select
                           {...field}
-                          className="w-full rounded-xl border border-white/10 bg-black/40 text-white px-4 py-3 text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
+                          className="w-full rounded-xl border border-white/50 bg-white/40 text-slate-900 px-4 py-3 text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
                         >
                           <option value={0} className="bg-[#0F0C29]">Select an experiment...</option>
                           {experiments?.map((e: ExperimentWithCandidate) => (
@@ -142,9 +142,9 @@ export default function Annotations() {
                   name="author"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/70">Author</FormLabel>
+                      <FormLabel className="text-slate-900/70">Author</FormLabel>
                       <FormControl>
-                        <Input className="bg-black/40 border-white/10 focus-visible:ring-yellow-500 rounded-xl px-4 py-6" placeholder="Dr. Priya Sharma" {...field} />
+                        <Input className="bg-white/40 border-white/50 focus-visible:ring-yellow-500 rounded-xl px-4 py-6" placeholder="Dr. Priya Sharma" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -155,11 +155,11 @@ export default function Annotations() {
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/70">Annotation</FormLabel>
+                      <FormLabel className="text-slate-900/70">Annotation</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Key insight, recommendation, or observation..."
-                          className="min-h-[140px] resize-none bg-black/40 border-white/10 focus-visible:ring-yellow-500 rounded-xl p-4"
+                          className="min-h-[140px] resize-none bg-white/40 border-white/50 focus-visible:ring-yellow-500 rounded-xl p-4"
                           {...field}
                         />
                       </FormControl>
@@ -167,7 +167,7 @@ export default function Annotations() {
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-end pt-6 border-t border-white/10">
+                <div className="flex justify-end pt-6 border-t border-white/50">
                   <Button type="submit" disabled={createAnnotation.isPending} className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-full px-8 py-6">
                     {createAnnotation.isPending ? "Saving..." : "Save Annotation"}
                   </Button>
@@ -181,11 +181,11 @@ export default function Annotations() {
       {/* Search */}
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="relative max-w-2xl">
         <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-          <Search className="w-5 h-5 text-white/40" />
+          <Search className="w-5 h-5 text-slate-900/40" />
         </div>
         <Input
           placeholder="Search observations, authors, or candidates..."
-          className="pl-14 py-8 bg-white/5 border-white/10 rounded-full text-lg focus-visible:ring-yellow-500 text-white placeholder:text-white/30 shadow-inner"
+          className="pl-14 py-8 bg-white/30 border-white/50 rounded-full text-lg focus-visible:ring-yellow-500 text-slate-900 placeholder:text-slate-900/30 shadow-inner"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -193,14 +193,14 @@ export default function Annotations() {
 
       {isLoading ? (
         <div className="space-y-6">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 w-full bg-white/5 rounded-[2rem]" />)}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 w-full bg-white/30 rounded-[2rem]" />)}
         </div>
       ) : !filtered || filtered.length === 0 ? (
-        <div className="p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/10">
-          <div className="rounded-[calc(2.5rem-0.375rem)] bg-[#080310]/90 backdrop-blur-2xl p-16 text-center border border-white/5">
+        <div className="p-1.5 rounded-[2.5rem] bg-white/[0.04] border border-white/50">
+          <div className="rounded-[calc(2.5rem-0.375rem)] bg-white/60 backdrop-blur-2xl p-16 text-center border border-white/40">
             <Database className="w-16 h-16 mx-auto text-yellow-500/50 mb-6" />
-            <h3 className="text-2xl font-serif font-bold text-white mb-2">{search ? "No matching annotations" : "No Annotations Yet"}</h3>
-            <p className="text-white/50 max-w-sm mx-auto">
+            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">{search ? "No matching annotations" : "No Annotations Yet"}</h3>
+            <p className="text-slate-900/50 max-w-sm mx-auto">
               {search ? "Try a different search term." : "Add your first annotation to build the team knowledge base."}
             </p>
           </div>
@@ -219,7 +219,7 @@ export default function Annotations() {
                   <div className="flex-1 min-w-0 pt-1">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <div className="font-bold text-lg text-white">{annotation.author}</div>
+                        <div className="font-bold text-lg text-slate-900">{annotation.author}</div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="flex items-center gap-1 text-xs font-mono font-bold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">
                             <FlaskConical className="w-3 h-3" />
@@ -228,23 +228,23 @@ export default function Annotations() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <span className="text-[10px] text-white/40 font-mono font-bold uppercase tracking-widest">
+                        <span className="text-[10px] text-slate-900/40 font-mono font-bold uppercase tracking-widest">
                           {new Date(annotation.createdAt).toLocaleDateString()}
                         </span>
                         <button
                           onClick={() => handleDelete(annotation.id)}
-                          className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all"
+                          className="w-8 h-8 rounded-full bg-white/30 border border-white/50 flex items-center justify-center text-slate-900/40 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all"
                           title="Delete annotation"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                    <div className="bg-black/40 border border-white/5 p-4 rounded-2xl mb-4 relative overflow-hidden">
+                    <div className="bg-white/40 border border-white/40 p-4 rounded-2xl mb-4 relative overflow-hidden">
                       <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500" />
-                      <p className="text-base text-white/90 leading-relaxed font-medium pl-2">{annotation.content}</p>
+                      <p className="text-base text-slate-900/90 leading-relaxed font-medium pl-2">{annotation.content}</p>
                     </div>
-                    <div className="text-xs text-white/40 font-medium italic border-t border-white/5 pt-3">
+                    <div className="text-xs text-slate-900/40 font-medium italic border-t border-white/40 pt-3">
                       "{annotation.experimentSummary}"
                     </div>
                   </div>
